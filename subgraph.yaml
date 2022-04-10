@@ -1,0 +1,83 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Comptroller
+    network: mainnet
+    source:
+      address: "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
+      abi: Comptroller
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - ActionPaused
+        - ActionPaused1
+        - CompAccruedAdjusted
+        - CompBorrowSpeedUpdated
+        - CompGranted
+        - CompReceivableUpdated
+        - CompSupplySpeedUpdated
+        - ContributorCompSpeedUpdated
+        - DistributedBorrowerComp
+        - DistributedSupplierComp
+        - Failure
+        - MarketEntered
+        - MarketExited
+        - MarketListed
+        - NewBorrowCap
+        - NewBorrowCapGuardian
+        - NewCloseFactor
+        - NewCollateralFactor
+        - NewLiquidationIncentive
+        - NewPauseGuardian
+        - NewPriceOracle
+      abis:
+        - name: Comptroller
+          file: ./abis/Comptroller.json
+      eventHandlers:
+        - event: ActionPaused(string,bool)
+          handler: handleActionPaused
+        - event: ActionPaused(address,string,bool)
+          handler: handleActionPaused1
+        - event: CompAccruedAdjusted(indexed address,uint256,uint256)
+          handler: handleCompAccruedAdjusted
+        - event: CompBorrowSpeedUpdated(indexed address,uint256)
+          handler: handleCompBorrowSpeedUpdated
+        - event: CompGranted(address,uint256)
+          handler: handleCompGranted
+        - event: CompReceivableUpdated(indexed address,uint256,uint256)
+          handler: handleCompReceivableUpdated
+        - event: CompSupplySpeedUpdated(indexed address,uint256)
+          handler: handleCompSupplySpeedUpdated
+        - event: ContributorCompSpeedUpdated(indexed address,uint256)
+          handler: handleContributorCompSpeedUpdated
+        - event: DistributedBorrowerComp(indexed address,indexed address,uint256,uint256)
+          handler: handleDistributedBorrowerComp
+        - event: DistributedSupplierComp(indexed address,indexed address,uint256,uint256)
+          handler: handleDistributedSupplierComp
+        - event: Failure(uint256,uint256,uint256)
+          handler: handleFailure
+        - event: MarketEntered(address,address)
+          handler: handleMarketEntered
+        - event: MarketExited(address,address)
+          handler: handleMarketExited
+        - event: MarketListed(address)
+          handler: handleMarketListed
+        - event: NewBorrowCap(indexed address,uint256)
+          handler: handleNewBorrowCap
+        - event: NewBorrowCapGuardian(address,address)
+          handler: handleNewBorrowCapGuardian
+        - event: NewCloseFactor(uint256,uint256)
+          handler: handleNewCloseFactor
+        - event: NewCollateralFactor(address,uint256,uint256)
+          handler: handleNewCollateralFactor
+        - event: NewLiquidationIncentive(uint256,uint256)
+          handler: handleNewLiquidationIncentive
+        - event: NewPauseGuardian(address,address)
+          handler: handleNewPauseGuardian
+        - event: NewPriceOracle(address,address)
+          handler: handleNewPriceOracle
+      file: ./src/mapping.ts
