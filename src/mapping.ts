@@ -15,7 +15,7 @@ import {
   RepayBorrow,
   Transfer,
 } from "../generated/templates/CToken/CToken"
-import { Borrow, Deposit, LendingProtocol, Liquidation, Market, Repay, Token, Withdraw } from "../generated/schema"
+import { Borrow, Deposit, LendingProtocol, Liquidate, Market, Repay, Token, Withdraw } from "../generated/schema"
 import { BIGDECIMAL_ZERO, BIGINT_ZERO, LendingType, Network, ProtocolType, RiskType } from "./constants"
 
 let comptrollerAddr = Address.fromString("0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B")
@@ -340,7 +340,7 @@ export function handleLiquidateBorrow(event: LiquidateBorrow): void {
   .toHexString()
   .concat('-')
   .concat(event.transactionLogIndex.toString())
-  let liquidate = new Liquidation(liquidateID)
+  let liquidate = new Liquidate(liquidateID)
   let protocol = getOrCreateProtocol()
   liquidate.hash = event.transaction.hash.toHexString()
   liquidate.logIndex = event.transactionLogIndex.toI32()

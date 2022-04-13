@@ -264,6 +264,8 @@ type Market @entity {
   " Current balance of all deposited assets (not historical cumulative), in USD "
   totalDepositUSD: BigDecimal!
 
+  # same thing as Market.totalBorrows in the official subgraph
+
   " Current balance of all borrowed assets (not historical cumulative), in USD. In the case of CDPs, this will be all minted assets "
   totalBorrowUSD: BigDecimal!
 
@@ -272,6 +274,8 @@ type Market @entity {
 
   " Price per share of input token in USD "
   inputTokenPricesUSD: [BigDecimal!]!
+
+  # same thing as Market.totalSupply in the official subgraph
 
   " Total supply of output token "
   outputTokenSupply: BigInt!
@@ -327,8 +331,12 @@ type Market @entity {
   " Deposit interest rate in APY percentage "
   depositRate: BigDecimal!
 
+  # compound doesn't have a stable borrow rate, it is changing by blocks
+
   " Borrow interest rate in APY percentage "
   stableBorrowRate: BigDecimal!
+
+  # the same thing as Market.borrowRate in the official subgraph
 
   " Borrow interest rate in APY percentage "
   variableBorrowRate: BigDecimal!
@@ -341,7 +349,7 @@ type Market @entity {
 
   repays: [Repay!]! @derivedFrom(field: "market")
 
-  liquidations: [Liquidation!]! @derivedFrom(field: "market")
+  liquidates: [Liquidate!]! @derivedFrom(field: "market")
 }
 
 #################################
@@ -593,7 +601,7 @@ type Repay implements Event @entity(immutable: true) {
   amountUSD: BigDecimal
 }
 
-type Liquidation implements Event @entity(immutable: true) {
+type Liquidate implements Event @entity(immutable: true) {
   " { Transaction hash }-{ Log index } "
   id: ID!
 
