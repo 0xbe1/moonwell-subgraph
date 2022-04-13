@@ -21,6 +21,7 @@ import { BIGDECIMAL_ZERO, BIGINT_ZERO, LendingType, Network, ProtocolType, RiskT
 let comptrollerAddr = Address.fromString("0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B")
 let ethAddr = Address.fromString("0x0000000000000000000000000000000000000000")
 let cETHAddr = Address.fromString("0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5")
+let daiAddr = Address.fromString("0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359")
 let compAddr = "0xc00e94cb662c3520282e6f5717214004a7f26888"
 
 // 
@@ -73,9 +74,13 @@ export function handleMarketListed(event: MarketListed): void {
   // create underlying token
   //
   let underlyingToken = new Token(underlyingTokenAddr.toHexString())
-  if (underlyingTokenAddr == ethAddr) {
+  if (underlyingTokenAddr == ethAddr) { // don't want to call CEther contract, hardcode instead
     underlyingToken.name = "Ether"
     underlyingToken.symbol = "ETH"
+    underlyingToken.decimals = 18
+  } else if (underlyingTokenAddr == daiAddr) { // this is a DSToken that doesn't have name and symbol, hardcode instead
+    underlyingToken.name = "Dai Stablecoin v1.0 (DAI)"
+    underlyingToken.symbol = "DAI"
     underlyingToken.decimals = 18
   } else {
     let underlyingTokenContract = ERC20.bind(underlyingTokenAddr)
@@ -182,7 +187,6 @@ export function handleMint(event: Mint): void {
   deposit.timestamp = event.block.timestamp
   deposit.market = marketID
   deposit.asset = market.inputTokens[0]
-  // TODO: check amount unit
   deposit.amount = event.params.mintAmount
   // " Amount of token deposited in USD "
   // TODO: amountUSD: BigDecimal!
@@ -223,7 +227,6 @@ export function handleRedeem(event: Redeem): void {
   withdraw.timestamp = event.block.timestamp
   withdraw.market = marketID
   withdraw.asset = market.inputTokens[0]
-  // TODO: check amount unit
   withdraw.amount = event.params.redeemAmount
   // " Amount of token withdrawn in USD "
   // TODO: amountUSD: BigDecimal!
@@ -265,7 +268,6 @@ export function handleBorrow(event: BorrowEvent): void {
   borrow.timestamp = event.block.timestamp
   borrow.market = marketID
   borrow.asset = market.inputTokens[0]
-  // TODO: check amount unit
   borrow.amount = event.params.borrowAmount
   // " Amount of token borrowed in USD "
   // TODO: amountUSD: BigDecimal
@@ -308,7 +310,6 @@ export function handleRepayBorrow(event: RepayBorrow): void {
   repay.timestamp = event.block.timestamp
   repay.market = marketID
   repay.asset = market.inputTokens[0]
-  // TODO: check amount unit
   repay.amount = event.params.repayAmount
   // " Amount of token repaid in USD "
   // TODO: amountUSD: BigDecimal
@@ -351,7 +352,6 @@ export function handleLiquidateBorrow(event: LiquidateBorrow): void {
   liquidate.timestamp = event.block.timestamp
   liquidate.market = marketID
   liquidate.asset = market.inputTokens[0]
-  // TODO: check amount unit
   liquidate.amount = event.params.repayAmount
   // " Amount of token liquidated in USD "
   // TODO: amountUSD: BigDecimal
