@@ -27,7 +27,7 @@ enum ProtocolType {
   # Will add more
 }
 
-type Token @entity {
+type Token @entity(immutable: true) {
   " Smart contract address of the token "
   id: ID!
 
@@ -42,7 +42,7 @@ enum RewardTokenType {
   BORROW
 }
 
-type RewardToken @entity {
+type RewardToken @entity(immutable: true) {
   " Smart contract address of the reward token "
   id: ID!
 
@@ -441,7 +441,7 @@ interface Event {
   timestamp: BigInt!
 }
 
-type Deposit implements Event @entity {
+type Deposit implements Event @entity(immutable: true) {
   " { Transaction hash }-{ Log index } "
   id: ID!
 
@@ -479,7 +479,7 @@ type Deposit implements Event @entity {
   amountUSD: BigDecimal!
 }
 
-type Withdraw implements Event @entity {
+type Withdraw implements Event @entity(immutable: true) {
   " { Transaction hash }-{ Log index }"
   id: ID!
 
@@ -517,7 +517,7 @@ type Withdraw implements Event @entity {
   amountUSD: BigDecimal!
 }
 
-type Borrow implements Event @entity {
+type Borrow implements Event @entity(immutable: true) {
   " { Transaction hash }-{ Log index } "
   id: ID!
 
@@ -555,7 +555,7 @@ type Borrow implements Event @entity {
   amountUSD: BigDecimal
 }
 
-type Repay implements Event @entity {
+type Repay implements Event @entity(immutable: true) {
   " { Transaction hash }-{ Log index } "
   id: ID!
 
@@ -593,7 +593,7 @@ type Repay implements Event @entity {
   amountUSD: BigDecimal
 }
 
-type Liquidation implements Event @entity {
+type Liquidation implements Event @entity(immutable: true) {
   " { Transaction hash }-{ Log index } "
   id: ID!
 
