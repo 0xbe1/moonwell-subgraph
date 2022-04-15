@@ -1,2 +1,8 @@
-Questions:
-- How do I get CToken abi?
+Todo
+
+- [ ] price USD
+- [ ] $COMP
+
+Bug
+
+- [ ] market.inputTokenBalances == 0
