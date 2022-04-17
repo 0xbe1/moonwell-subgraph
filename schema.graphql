@@ -336,10 +336,8 @@ type Market @entity {
 
   # compound doesn't have a stable borrow rate, it is changing by blocks
 
-  " Borrow interest rate in APY percentage "
-  stableBorrowRate: BigDecimal!
-
-  # the same thing as Market.borrowRate in the official subgraph
+  " Borrow interest rate in APY percentage. Leave as null if no stable borrow rate "
+  stableBorrowRate: BigDecimal
 
   " Borrow interest rate in APY percentage "
   variableBorrowRate: BigDecimal!
@@ -413,8 +411,8 @@ type MarketDailySnapshot @entity {
   " Deposit interest rate in APY percentage "
   depositRate: BigDecimal!
 
-  " Borrow interest rate in APY percentage "
-  stableBorrowRate: BigDecimal!
+  " Borrow interest rate in APY percentage. Leave as null if no stable borrow rate "
+  stableBorrowRate: BigDecimal
 
   " Borrow interest rate in APY percentage "
   variableBorrowRate: BigDecimal!
