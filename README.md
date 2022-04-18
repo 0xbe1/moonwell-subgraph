@@ -1,8 +1,4 @@
 Todo
 
-- [ ] price USD
 - [ ] $COMP
-
-Bug
-
-- [ ] market.inputTokenBalances == 0
+- [ ] Make sure math are correct
