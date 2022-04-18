@@ -42,6 +42,7 @@ import {
   BIGINT_ZERO,
   cETHAddr,
   comptrollerAddr,
+  cTokenDecimals,
   cUSDCAddr,
   daiAddr,
   ethAddr,
@@ -109,14 +110,11 @@ export function handleMarketListed(event: MarketListed): void {
   if (cTokenAddr == cETHAddr) {
     cToken.name = "Compound Ether";
     cToken.symbol = "cETH";
-    cToken.decimals = 18;
+    cToken.decimals = cTokenDecimals;
   } else {
     cToken.name = getOrElse<string>(cTokenContract.try_name(), "unknown");
     cToken.symbol = getOrElse<string>(cTokenContract.try_symbol(), "unknown");
-    cToken.decimals = getOrElse<BigInt>(
-      cTokenContract.try_decimals(),
-      BIGINT_ZERO
-    ).toI32();
+    cToken.decimals = cTokenDecimals;
   }
   cToken.save();
 
