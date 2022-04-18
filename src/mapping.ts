@@ -275,6 +275,11 @@ export function handleMint(event: Mint): void {
       .div(exponentToBigDecimal(underlyingToken.decimals))
   );
   deposit.save();
+
+  market.inputTokenBalances = [
+    market.inputTokenBalances[0].plus(event.params.mintAmount),
+  ];
+  market.save();
 }
 
 //
@@ -324,6 +329,11 @@ export function handleRedeem(event: Redeem): void {
       .div(exponentToBigDecimal(underlyingToken.decimals))
   );
   withdraw.save();
+
+  market.inputTokenBalances = [
+    market.inputTokenBalances[0].minus(event.params.redeemAmount),
+  ];
+  market.save();
 }
 
 //
@@ -511,37 +521,6 @@ export function handleTransfer(event: Transfer): void {
 
   let cTokenContract = CToken.bind(event.address);
 
-  let exchangeRateResult = cTokenContract.try_exchangeRateStored();
-  if (exchangeRateResult.reverted) {
-    log.warning(
-      "[handleTransfer] Failed to get exchangeRateStored of Market {}",
-      [marketID]
-    );
-    return;
-  }
-
-  // TODO: confirm unit
-  let underlyingAmount = exchangeRateResult.value
-    .times(event.params.amount)
-    .div(mantissaFactorBI);
-
-  // check if the Transfer is FROM a CToken contract, or TO a CToken contract
-  // - FROM a CToken contract, it is a mint. Need to plus deposit
-  // - TO a CToken contract, it is a redeem. Need to minus deposit
-  let isMint = event.params.from.toHexString() == marketID;
-
-  if (isMint) {
-    market.inputTokenBalances = [
-      market.inputTokenBalances[0].plus(underlyingAmount),
-    ];
-    // TODO: update totalVolumeUSD
-    // market.totalVolumeUSD = market.totalVolumeUSD.plus(market.inputTokenPricesUSD[0].times(underlyingAmount))
-  } else {
-    market.inputTokenBalances = [
-      market.inputTokenBalances[0].minus(underlyingAmount),
-    ];
-  }
-
   market.outputTokenSupply = getOrElse<BigInt>(
     cTokenContract.try_totalSupply(),
     BIGINT_ZERO
@@ -549,6 +528,7 @@ export function handleTransfer(event: Transfer): void {
 
   let underlyingSupplyUSD = market.inputTokenBalances[0]
     .toBigDecimal()
+    .div(exponentToBigDecimal(underlyingToken.decimals))
     .times(market.inputTokenPricesUSD[0]);
   market.totalValueLockedUSD = underlyingSupplyUSD;
   market.totalDepositUSD = underlyingSupplyUSD;
@@ -557,11 +537,7 @@ export function handleTransfer(event: Transfer): void {
 }
 
 export function handleAccrueInterest(event: AccrueInterest): void {
-  accrueInterest(
-    event.address,
-    event.block.number.toI32(),
-    event.block.timestamp.toI32()
-  );
+  accrueInterest(event.address, event.block.number.toI32());
 }
 
 function getOrCreateProtocol(): LendingProtocol {
@@ -588,11 +564,7 @@ function getOrCreateProtocol(): LendingProtocol {
 }
 
 // This function is called whenever mint, redeem, borrow, repay, liquidateBorrow happens
-function accrueInterest(
-  marketAddress: Address,
-  blockNumber: i32,
-  blockTimestamp: i32
-): void {
+function accrueInterest(marketAddress: Address, blockNumber: i32): void {
   let marketID = marketAddress.toHexString();
   let market = Market.load(marketID);
   if (!market) {
