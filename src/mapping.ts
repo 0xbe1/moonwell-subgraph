@@ -580,16 +580,35 @@ function accrueInterest(marketAddress: Address, blockNumber: i32): void {
     return;
   }
 
-  market.inputTokenPricesUSD = [
-    getTokenPriceUSD(
-      marketAddress,
-      Address.fromString(market.inputTokens[0]),
-      underlyingToken.decimals,
-      blockNumber
-    ),
-  ];
+  let underlyingTokenPriceUSD = getTokenPriceUSD(
+    marketAddress,
+    Address.fromString(market.inputTokens[0]),
+    underlyingToken.decimals,
+    blockNumber
+  );
+  market.inputTokenPricesUSD = [underlyingTokenPriceUSD];
 
   let cTokenContract = CToken.bind(marketAddress);
+
+  let exchangeRateResult = cTokenContract.try_exchangeRateStored();
+  if (exchangeRateResult.reverted) {
+    log.warning(
+      "[handleTransfer] Failed to get exchangeRateStored of Market {}",
+      [marketID]
+    );
+  } else {
+    // Formula: check out "Interpreting Exchange Rates" in https://compound.finance/docs#protocol-math
+    let oneCTokenInUnderlying = exchangeRateResult.value
+      .toBigDecimal()
+      .div(
+        exponentToBigDecimal(
+          mantissaFactor + underlyingToken.decimals - cTokenDecimals
+        )
+      );
+    market.outputTokenPriceUSD = oneCTokenInUnderlying.times(
+      underlyingTokenPriceUSD
+    );
+  }
 
   let totalBorrowsResult = cTokenContract.try_totalBorrows();
   if (totalBorrowsResult.reverted) {
