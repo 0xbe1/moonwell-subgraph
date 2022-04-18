@@ -698,30 +698,30 @@ function getTokenPriceUSD(
       underlyingAddr,
       underlyingDecimals
     );
-  } else {
-    let usdPriceInEth = getTokenPrice(
-      blockNumber,
-      cUSDCAddr,
-      Address.fromString("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
-      6
-    );
-
-    if (cTokenAddr == cETHAddr) {
-      return BIGDECIMAL_ONE.div(usdPriceInEth).truncate(underlyingDecimals);
-    } else {
-      let tokenPriceEth = getTokenPrice(
-        blockNumber,
-        cTokenAddr,
-        underlyingAddr,
-        underlyingDecimals
-      );
-
-      return tokenPriceEth
-        .truncate(underlyingDecimals)
-        .div(usdPriceInEth)
-        .truncate(underlyingDecimals);
-    }
   }
+
+  let usdPriceInEth = getTokenPrice(
+    blockNumber,
+    cUSDCAddr,
+    Address.fromString("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
+    6
+  );
+
+  if (cTokenAddr == cETHAddr) {
+    return BIGDECIMAL_ONE.div(usdPriceInEth).truncate(underlyingDecimals);
+  }
+
+  let tokenPriceEth = getTokenPrice(
+    blockNumber,
+    cTokenAddr,
+    underlyingAddr,
+    underlyingDecimals
+  );
+
+  return tokenPriceEth
+    .truncate(underlyingDecimals)
+    .div(usdPriceInEth)
+    .truncate(underlyingDecimals);
 }
 
 // Used for all cERC20 contracts
@@ -771,13 +771,10 @@ function getTokenPrice(
      *
      * Note this returns the value already factoring in token decimals and wei, therefore
      * we only need to divide by the mantissa, 10^18 */
-  } else {
-    let oracle1 = PriceOracle.bind(priceOracle1Address);
-    return oracle1
-      .getPrice(underlyingAddr)
-      .toBigDecimal()
-      .div(mantissaFactorBD);
   }
+
+  let oracle1 = PriceOracle.bind(priceOracle1Address);
+  return oracle1.getPrice(underlyingAddr).toBigDecimal().div(mantissaFactorBD);
 }
 
 function getOrElse<T>(result: ethereum.CallResult<T>, defaultValue: T): T {
