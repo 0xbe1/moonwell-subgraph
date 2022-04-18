@@ -4,6 +4,7 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
+    "test": "docker run -it --rm --mount type=bind,source=$(pwd),target=/matchstick matchstick",
     "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ compound-v2",
     "create-local": "graph create --node http://localhost:8020/ compound-v2",
     "remove-local": "graph remove --node http://localhost:8020/ compound-v2",
@@ -14,6 +15,7 @@
     "@graphprotocol/graph-ts": "0.26.0"
   },
   "devDependencies": {
+    "matchstick-as": "^0.4.2",
     "prettier": "^2.6.2"
   }
 }
