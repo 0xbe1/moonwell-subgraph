@@ -12,4 +12,4 @@ See [matchstick docs](https://github.com/LimeChain/matchstick#docker-) for more 
 ## Todo
 
 - [ ] $COMP
-- [ ] Make sure math are correct
+- [ ] Should I use truncate

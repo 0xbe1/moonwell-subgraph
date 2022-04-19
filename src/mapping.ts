@@ -43,6 +43,7 @@ import {
   cETHAddr,
   comptrollerAddr,
   cTokenDecimals,
+  cTokenDecimalsBD,
   cUSDCAddr,
   daiAddr,
   ethAddr,
@@ -50,7 +51,6 @@ import {
   LendingType,
   mantissaFactor,
   mantissaFactorBD,
-  mantissaFactorBI,
   Network,
   ProtocolType,
   RiskType,
@@ -190,9 +190,9 @@ export function handleNewCollateralFactor(event: NewCollateralFactor): void {
     log.warning("[handleNewCollateralFactor] Market not found: {}", [marketID]);
     return;
   }
-  let collateralFactor = convertMantissaToRatio(
-    event.params.newCollateralFactorMantissa
-  );
+  let collateralFactor = event.params.newCollateralFactorMantissa
+    .toBigDecimal()
+    .div(mantissaFactorBD);
   market.maximumLTV = collateralFactor;
   market.liquidationThreshold = collateralFactor;
   market.save();
@@ -206,9 +206,9 @@ export function handleNewLiquidationIncentive(
   event: NewLiquidationIncentive
 ): void {
   let protocol = getOrCreateProtocol();
-  let liquidationIncentive = convertMantissaToRatio(
-    event.params.newLiquidationIncentiveMantissa
-  );
+  let liquidationIncentive = event.params.newLiquidationIncentiveMantissa
+    .toBigDecimal()
+    .div(mantissaFactorBD);
   protocol._liquidationIncentive = liquidationIncentive;
   protocol.save();
 
@@ -508,7 +508,7 @@ export function handleLiquidateBorrow(event: LiquidateBorrow): void {
   liquidate.amount = event.params.seizeTokens;
   let gainUSD = event.params.seizeTokens
     .toBigDecimal()
-    .div(exponentToBigDecimal(cTokenDecimals))
+    .div(cTokenDecimalsBD)
     .times(liquidatedCTokenMarket.outputTokenPriceUSD);
   let lossUSD = event.params.repayAmount
     .toBigDecimal()
@@ -580,9 +580,10 @@ function getOrCreateProtocol(): LendingProtocol {
     protocol.riskType = RiskType.GLOBAL;
 
     let comptroller = Comptroller.bind(comptrollerAddr);
-    protocol._liquidationIncentive = convertMantissaToRatio(
-      comptroller.liquidationIncentiveMantissa()
-    );
+    protocol._liquidationIncentive = comptroller
+      .liquidationIncentiveMantissa()
+      .toBigDecimal()
+      .div(mantissaFactorBD);
     protocol.save();
   }
   return protocol;
@@ -695,13 +696,6 @@ function convertRatePerBlockToAPY(ratePerBlock: BigInt): BigDecimal {
 // function pow(a: BigInt, b: BigInt, n: u8): BigDecimal {
 //   return a.pow(n).toBigDecimal().div(b.pow(n).toBigDecimal())
 // }
-
-// TODO: verify this is correct
-function convertMantissaToRatio(mantissa: BigInt): BigDecimal {
-  return mantissa
-    .toBigDecimal()
-    .div(BigDecimal.fromString("1000000000000000000"));
-}
 
 function getTokenPriceUSD(
   cTokenAddr: Address,

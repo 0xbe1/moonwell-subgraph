@@ -121,8 +121,6 @@ export const mantissaFactor = 18;
 export const cTokenDecimals = 8;
 export const mantissaFactorBD = exponentToBigDecimal(mantissaFactor);
 export const cTokenDecimalsBD = exponentToBigDecimal(cTokenDecimals);
-export const mantissaFactorBI = exponentToBigInt(mantissaFactor);
-export const cTokenDecimalsBI = exponentToBigInt(cTokenDecimals);
 
 // n => 10^n
 export function exponentToBigDecimal(decimals: i32): BigDecimal {
@@ -132,15 +130,6 @@ export function exponentToBigDecimal(decimals: i32): BigDecimal {
     bd = bd.times(ten);
   }
   return bd;
-}
-
-export function exponentToBigInt(decimals: i32): BigInt {
-  let res = BIGINT_ONE;
-  let ten = BigInt.fromI32(10);
-  for (let i = 0; i < decimals; i++) {
-    res = res.times(ten);
-  }
-  return res;
 }
 
 export const BLOCKS_PER_DAY = BigInt.fromI32(6570);
