@@ -336,8 +336,6 @@ type Market @entity {
   " Deposit interest rate in APY percentage "
   depositRate: BigDecimal!
 
-  # compound doesn't have a stable borrow rate, it is changing by blocks
-
   " Borrow interest rate in APY percentage. Leave as null if no stable borrow rate "
   stableBorrowRate: BigDecimal
 

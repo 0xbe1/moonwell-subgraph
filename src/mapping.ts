@@ -32,6 +32,7 @@ import {
   LendingProtocol,
   Liquidate,
   Market,
+  MarketDailySnapshot,
   Repay,
   Token,
   Withdraw,
@@ -54,6 +55,7 @@ import {
   Network,
   ProtocolType,
   RiskType,
+  SECONDS_PER_DAY,
 } from "./constants";
 import { PriceOracle } from "../generated/templates/CToken/PriceOracle";
 import { PriceOracle2 } from "../generated/templates/CToken/PriceOracle2";
@@ -563,6 +565,7 @@ export function handleTransfer(event: Transfer): void {
 
 export function handleAccrueInterest(event: AccrueInterest): void {
   accrueInterest(event.address, event.block.number.toI32());
+  snapshotMarket(event.address.toHexString(), event.block.number, event.block.timestamp);
 }
 
 function getOrCreateProtocol(): LendingProtocol {
@@ -676,6 +679,36 @@ function accrueInterest(marketAddress: Address, blockNumber: i32): void {
   }
   market._accuralBlockNumber = blockNumber;
   market.save();
+}
+
+function snapshotMarket(marketID: string, blockNumber: BigInt, blockTimestamp: BigInt): void {
+  let market = Market.load(marketID);
+  if (!market) {
+    log.warning("[snapshotMarket] Market not found: {}", [marketID]);
+    return;
+  }
+
+  let snapshotID = marketID.concat('-').concat((blockNumber.toI32() / SECONDS_PER_DAY).toString())
+  let snapshot = new MarketDailySnapshot(snapshotID)
+  snapshot.protocol = market.protocol;
+  snapshot.market = marketID;
+  snapshot.totalValueLockedUSD = market.totalValueLockedUSD;
+  snapshot.totalVolumeUSD = market.totalVolumeUSD;
+  snapshot.totalDepositUSD = market.totalDepositUSD;
+  snapshot.totalBorrowUSD = market.totalBorrowUSD;
+  snapshot.inputTokenBalances = market.inputTokenBalances;
+  snapshot.inputTokenPricesUSD = market.inputTokenPricesUSD;
+  snapshot.outputTokenSupply = market.outputTokenSupply;
+  snapshot.outputTokenPriceUSD = market.outputTokenPriceUSD;
+  snapshot.rewardTokenEmissionsAmount = market.rewardTokenEmissionsAmount;
+  snapshot.rewardTokenEmissionsUSD = market.rewardTokenEmissionsUSD;
+  snapshot.depositRate = market.depositRate;
+  snapshot.stableBorrowRate = market.stableBorrowRate;
+  snapshot.variableBorrowRate = market.variableBorrowRate;
+
+  snapshot.blockNumber = blockNumber;
+  snapshot.timestamp = blockTimestamp;
+  snapshot.save()
 }
 
 function convertRatePerBlockToAPY(ratePerBlock: BigInt): BigDecimal {
