@@ -637,14 +637,17 @@ function accrueInterest(marketAddress: Address, blockNumber: i32): void {
     );
   }
 
+  // Returns the total amount of borrowed underlying, with interest.
   let totalBorrowsResult = cTokenContract.try_totalBorrows();
   if (totalBorrowsResult.reverted) {
     log.warning("[accrueInterest] Failed to get totalBorrows of Market {}", [
       marketID,
     ]);
   } else {
-    let totalBorrows = totalBorrowsResult.value;
-    // TODO: turn into USD
+    market.totalBorrowUSD = totalBorrowsResult.value
+      .toBigDecimal()
+      .div(exponentToBigDecimal(underlyingToken.decimals))
+      .times(underlyingTokenPriceUSD);
   }
 
   let supplyRatePerBlockResult = cTokenContract.try_supplyRatePerBlock();
