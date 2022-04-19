@@ -446,23 +446,44 @@ export function handleRepayBorrow(event: RepayBorrow): void {
 // - cTokenCollateral
 // - seizeTokens
 export function handleLiquidateBorrow(event: LiquidateBorrow): void {
-  let marketID = event.address.toHexString();
-  let market = Market.load(marketID);
-  if (!market) {
-    log.warning("[handleLiquidateBorrow] Market not found: {}", [marketID]);
-    return;
-  }
-  if (market.inputTokens.length < 1) {
-    log.warning("[handleLiquidateBorrow] Market {} has no input tokens", [
-      marketID,
+  let repayTokenMarketID = event.address.toHexString();
+  let repayTokenMarket = Market.load(repayTokenMarketID);
+  if (!repayTokenMarket) {
+    log.warning("[handleLiquidateBorrow] Repay Token Market not found: {}", [
+      repayTokenMarketID,
     ]);
     return;
   }
-  let underlyingToken = Token.load(market.inputTokens[0]);
-  if (!underlyingToken) {
-    log.warning("[handleLiquidateBorrow] Failed to load underlying token: {}", [
-      market.inputTokens[0],
+  if (repayTokenMarket.inputTokens.length < 1) {
+    log.warning(
+      "[handleLiquidateBorrow] Repay Token Market {} has no input tokens",
+      [repayTokenMarketID]
+    );
+    return;
+  }
+  let repayToken = Token.load(repayTokenMarket.inputTokens[0]);
+  if (!repayToken) {
+    log.warning("[handleLiquidateBorrow] Failed to load repay token: {}", [
+      repayTokenMarket.inputTokens[0],
     ]);
+    return;
+  }
+
+  let liquidatedCTokenMarketID = event.params.cTokenCollateral.toHexString();
+  let liquidatedCTokenMarket = Market.load(liquidatedCTokenMarketID);
+  if (!liquidatedCTokenMarket) {
+    log.warning(
+      "[handleLiquidateBorrow] Liquidated CToken Market not found: {}",
+      [liquidatedCTokenMarketID]
+    );
+    return;
+  }
+  let liquidatedCToken = liquidatedCTokenMarket.outputToken;
+  if (!liquidatedCToken) {
+    log.warning(
+      "[handleLiquidateBorrow] Liquidated CToken Market {} has no output token",
+      [liquidatedCTokenMarketID]
+    );
     return;
   }
 
@@ -475,20 +496,26 @@ export function handleLiquidateBorrow(event: LiquidateBorrow): void {
   liquidate.hash = event.transaction.hash.toHexString();
   liquidate.logIndex = event.transactionLogIndex.toI32();
   liquidate.protocol = protocol.id;
-  liquidate.to = marketID;
+  liquidate.to = repayTokenMarketID;
   liquidate.from = event.params.liquidator.toHexString();
   liquidate.blockNumber = event.block.number;
   liquidate.timestamp = event.block.timestamp;
-  liquidate.market = marketID;
-  liquidate.asset = market.inputTokens[0];
-  liquidate.amount = event.params.repayAmount;
-  liquidate.amountUSD = market.inputTokenPricesUSD[0].times(
-    event.params.repayAmount
-      .toBigDecimal()
-      .div(exponentToBigDecimal(underlyingToken.decimals))
-  );
-  // " Amount of profit from liquidation in USD "
-  // TODO: profitUSD: BigDecimal
+  liquidate.market = repayTokenMarketID;
+  if (liquidatedCToken) {
+    // this is logically redundant since nullcheck has been done before, but removing the if check will fail 'graph build'
+    liquidate.asset = liquidatedCToken;
+  }
+  liquidate.amount = event.params.seizeTokens;
+  let gainUSD = event.params.seizeTokens
+    .toBigDecimal()
+    .div(exponentToBigDecimal(cTokenDecimals))
+    .times(liquidatedCTokenMarket.outputTokenPriceUSD);
+  let lossUSD = event.params.repayAmount
+    .toBigDecimal()
+    .div(exponentToBigDecimal(repayToken.decimals))
+    .times(repayTokenMarket.inputTokenPricesUSD[0]);
+  liquidate.amountUSD = gainUSD;
+  liquidate.profitUSD = gainUSD.minus(lossUSD);
   liquidate.save();
 }
 
