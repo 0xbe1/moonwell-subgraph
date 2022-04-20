@@ -529,6 +529,7 @@ export function handleLiquidateBorrow(event: LiquidateBorrow): void {
 // This function is called whenever mint, redeem, borrow, repay, liquidateBorrow happens
 export function handleAccrueInterest(event: AccrueInterest): void {
   updateMarket(event.address, event.block.number.toI32());
+  updateProtocol();
   snapshotMarket(
     event.address.toHexString(),
     event.block.number,
@@ -575,8 +576,6 @@ function getOrCreateProtocol(): LendingProtocol {
  * - [x] variableBorrowRate
  * - [x] _accuralBlockNumber
  *
- * protocol fields to update: TODO
- *
  * @param marketAddress
  * @param blockNumber
  * @returns
@@ -588,6 +587,7 @@ function updateMarket(marketAddress: Address, blockNumber: i32): void {
     log.warning("[updateMarket] Market not found: {}", [marketID]);
     return;
   }
+  // TODO: move this check to handleAccrueInterest?
   if (market._accuralBlockNumber >= blockNumber) {
     return;
   }
@@ -683,6 +683,42 @@ function updateMarket(marketAddress: Address, blockNumber: i32): void {
   }
   market._accuralBlockNumber = blockNumber;
   market.save();
+}
+
+/**
+ * protocol fields to update:
+ * - [x] totalValueLockedUSD
+ * - [ ] totalVolumeUSD (TODO: confirm it will be removed)
+ * - [x] totalDepositUSD
+ * - [x] totalBorrowUSD
+ */
+function updateProtocol(): void {
+  // TODO: should just get, not getOrCreate
+  let protocol = getOrCreateProtocol();
+  let protocolTotalValueLockedUSD = BIGDECIMAL_ZERO;
+  let protocolTotalDepositUSD = BIGDECIMAL_ZERO;
+  let protocolTotalBorrowUSD = BIGDECIMAL_ZERO;
+  for (let i = 0; i < protocol._marketIDs.length; i++) {
+    let market = Market.load(protocol._marketIDs[i]);
+    if (!market) {
+      log.warning("[updateProtocol] Market not found: {}", [
+        protocol._marketIDs[i],
+      ]);
+      // best effort
+      continue;
+    }
+    protocolTotalValueLockedUSD = protocolTotalValueLockedUSD.plus(
+      market.totalValueLockedUSD
+    );
+    protocolTotalDepositUSD = protocolTotalDepositUSD.plus(
+      market.totalDepositUSD
+    );
+    protocolTotalBorrowUSD = protocolTotalBorrowUSD.plus(market.totalBorrowUSD);
+  }
+  protocol.totalValueLockedUSD = protocolTotalValueLockedUSD;
+  protocol.totalDepositUSD = protocolTotalDepositUSD;
+  protocol.totalBorrowUSD = protocolTotalBorrowUSD;
+  protocol.save();
 }
 
 function snapshotMarket(
