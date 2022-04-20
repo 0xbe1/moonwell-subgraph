@@ -544,7 +544,7 @@ function getOrCreateProtocol(): LendingProtocol {
     protocol.name = "Compound V2";
     protocol.slug = "compound-v2";
     protocol.schemaVersion = "1.1.0";
-    protocol.subgraphVersion = "1.0.0";
+    protocol.subgraphVersion = "0.8.0";
     protocol.methodologyVersion = "1.0.0";
     protocol.network = Network.ETHEREUM;
     protocol.type = ProtocolType.LENDING;
