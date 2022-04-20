@@ -24,7 +24,6 @@ import {
   Redeem,
   Borrow as BorrowEvent,
   RepayBorrow,
-  Transfer,
 } from "../generated/templates/CToken/CToken";
 import {
   Borrow,
@@ -59,6 +58,12 @@ import {
 } from "./constants";
 import { PriceOracle } from "../generated/templates/CToken/PriceOracle";
 import { PriceOracle2 } from "../generated/templates/CToken/PriceOracle2";
+
+// Protocol <- UserMetricsDailySnapshot, FinancialsDailySnapshot
+//   ↑
+// Market <- MarketDailySnapshot
+//   ↑
+// Event
 
 //
 //
@@ -521,51 +526,14 @@ export function handleLiquidateBorrow(event: LiquidateBorrow): void {
   liquidate.save();
 }
 
-//
-//
-// event.params:
-// - from
-// - to
-// - amount
-export function handleTransfer(event: Transfer): void {
-  let marketID = event.address.toHexString();
-  let market = Market.load(marketID);
-  if (!market) {
-    log.warning("[handleTransfer] Market not found: {}", [marketID]);
-    return;
-  }
-  if (market.inputTokens.length < 1) {
-    log.warning("[handleTransfer] Market {} has no input tokens", [marketID]);
-    return;
-  }
-  let underlyingToken = Token.load(market.inputTokens[0]);
-  if (!underlyingToken) {
-    log.warning("[handleTransfer] Underlying token not found: {}", [
-      market.inputTokens[0],
-    ]);
-    return;
-  }
-
-  let cTokenContract = CToken.bind(event.address);
-
-  market.outputTokenSupply = getOrElse<BigInt>(
-    cTokenContract.try_totalSupply(),
-    BIGINT_ZERO
-  );
-
-  let underlyingSupplyUSD = market.inputTokenBalances[0]
-    .toBigDecimal()
-    .div(exponentToBigDecimal(underlyingToken.decimals))
-    .times(market.inputTokenPricesUSD[0]);
-  market.totalValueLockedUSD = underlyingSupplyUSD;
-  market.totalDepositUSD = underlyingSupplyUSD;
-
-  market.save();
-}
-
+// This function is called whenever mint, redeem, borrow, repay, liquidateBorrow happens
 export function handleAccrueInterest(event: AccrueInterest): void {
-  accrueInterest(event.address, event.block.number.toI32());
-  snapshotMarket(event.address.toHexString(), event.block.number, event.block.timestamp);
+  updateMarket(event.address, event.block.number.toI32());
+  snapshotMarket(
+    event.address.toHexString(),
+    event.block.number,
+    event.block.timestamp
+  );
 }
 
 function getOrCreateProtocol(): LendingProtocol {
@@ -592,12 +560,32 @@ function getOrCreateProtocol(): LendingProtocol {
   return protocol;
 }
 
-// This function is called whenever mint, redeem, borrow, repay, liquidateBorrow happens
-function accrueInterest(marketAddress: Address, blockNumber: i32): void {
+/**
+ * market fields to update:
+ * - [x] totalValueLockedUSD
+ * - [ ] totalVolumeUSD (TODO: confirm it will be removed)
+ * - [x] totalDepositUSD
+ * - [x] totalBorrowUSD
+ * - NOT inputTokenBalances, because that is easier with handleMint, handleRedeem, etc
+ * - [x] inputTokenPricesUSD
+ * - [x] outputTokenSupply
+ * - [x] outputTokenPriceUSD
+ * - [ ] rewardTokenEmissionsUSD
+ * - [x] depositRate
+ * - [x] variableBorrowRate
+ * - [x] _accuralBlockNumber
+ *
+ * protocol fields to update: TODO
+ *
+ * @param marketAddress
+ * @param blockNumber
+ * @returns
+ */
+function updateMarket(marketAddress: Address, blockNumber: i32): void {
   let marketID = marketAddress.toHexString();
   let market = Market.load(marketID);
   if (!market) {
-    log.warning("[accrueInterest] Market not found: {}", [marketID]);
+    log.warning("[updateMarket] Market not found: {}", [marketID]);
     return;
   }
   if (market._accuralBlockNumber >= blockNumber) {
@@ -605,7 +593,7 @@ function accrueInterest(marketAddress: Address, blockNumber: i32): void {
   }
   let underlyingToken = Token.load(market.inputTokens[0]);
   if (!underlyingToken) {
-    log.warning("[accrueInterest] Underlying token not found: {}", [
+    log.warning("[updateMarket] Underlying token not found: {}", [
       market.inputTokens[0],
     ]);
     return;
@@ -621,10 +609,26 @@ function accrueInterest(marketAddress: Address, blockNumber: i32): void {
 
   let cTokenContract = CToken.bind(marketAddress);
 
+  let totalSupplyResult = cTokenContract.try_totalSupply();
+  if (totalSupplyResult.reverted) {
+    log.warning("[updateMarket] Failed to get totalSupply of Market {}", [
+      marketID,
+    ]);
+  } else {
+    market.outputTokenSupply = totalSupplyResult.value;
+  }
+
+  let underlyingSupplyUSD = market.inputTokenBalances[0]
+    .toBigDecimal()
+    .div(exponentToBigDecimal(underlyingToken.decimals))
+    .times(underlyingTokenPriceUSD);
+  market.totalValueLockedUSD = underlyingSupplyUSD;
+  market.totalDepositUSD = underlyingSupplyUSD;
+
   let exchangeRateResult = cTokenContract.try_exchangeRateStored();
   if (exchangeRateResult.reverted) {
     log.warning(
-      "[handleTransfer] Failed to get exchangeRateStored of Market {}",
+      "[updateMarket] Failed to get exchangeRateStored of Market {}",
       [marketID]
     );
   } else {
@@ -644,7 +648,7 @@ function accrueInterest(marketAddress: Address, blockNumber: i32): void {
   // Returns the total amount of borrowed underlying, with interest.
   let totalBorrowsResult = cTokenContract.try_totalBorrows();
   if (totalBorrowsResult.reverted) {
-    log.warning("[accrueInterest] Failed to get totalBorrows of Market {}", [
+    log.warning("[updateMarket] Failed to get totalBorrows of Market {}", [
       marketID,
     ]);
   } else {
@@ -657,7 +661,7 @@ function accrueInterest(marketAddress: Address, blockNumber: i32): void {
   let supplyRatePerBlockResult = cTokenContract.try_supplyRatePerBlock();
   if (supplyRatePerBlockResult.reverted) {
     log.warning(
-      "[accrueInterest] Failed to get supplyRatePerBlock of Market {}",
+      "[updateMarket] Failed to get supplyRatePerBlock of Market {}",
       [marketID]
     );
   } else {
@@ -669,7 +673,7 @@ function accrueInterest(marketAddress: Address, blockNumber: i32): void {
   let borrowRatePerBlockResult = cTokenContract.try_borrowRatePerBlock();
   if (borrowRatePerBlockResult.reverted) {
     log.warning(
-      "[accrueInterest] Failed to get borrowRatePerBlock of Market {}",
+      "[updateMarket] Failed to get borrowRatePerBlock of Market {}",
       [marketID]
     );
   } else {
@@ -681,15 +685,21 @@ function accrueInterest(marketAddress: Address, blockNumber: i32): void {
   market.save();
 }
 
-function snapshotMarket(marketID: string, blockNumber: BigInt, blockTimestamp: BigInt): void {
+function snapshotMarket(
+  marketID: string,
+  blockNumber: BigInt,
+  blockTimestamp: BigInt
+): void {
   let market = Market.load(marketID);
   if (!market) {
     log.warning("[snapshotMarket] Market not found: {}", [marketID]);
     return;
   }
 
-  let snapshotID = marketID.concat('-').concat((blockNumber.toI32() / SECONDS_PER_DAY).toString())
-  let snapshot = new MarketDailySnapshot(snapshotID)
+  let snapshotID = marketID
+    .concat("-")
+    .concat((blockNumber.toI32() / SECONDS_PER_DAY).toString());
+  let snapshot = new MarketDailySnapshot(snapshotID);
   snapshot.protocol = market.protocol;
   snapshot.market = marketID;
   snapshot.totalValueLockedUSD = market.totalValueLockedUSD;
@@ -708,7 +718,7 @@ function snapshotMarket(marketID: string, blockNumber: BigInt, blockTimestamp: B
 
   snapshot.blockNumber = blockNumber;
   snapshot.timestamp = blockTimestamp;
-  snapshot.save()
+  snapshot.save();
 }
 
 function convertRatePerBlockToAPY(ratePerBlock: BigInt): BigDecimal {

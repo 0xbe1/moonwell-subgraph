@@ -269,8 +269,6 @@ type Market @entity {
   " Current balance of all deposited assets (not historical cumulative), in USD "
   totalDepositUSD: BigDecimal!
 
-  # same thing as Market.totalBorrows in the official subgraph
-
   " Current balance of all borrowed assets (not historical cumulative), in USD. In the case of CDPs, this will be all minted assets "
   totalBorrowUSD: BigDecimal!
 
@@ -279,8 +277,6 @@ type Market @entity {
 
   " Price per share of input token in USD "
   inputTokenPricesUSD: [BigDecimal!]!
-
-  # same thing as Market.totalSupply in the official subgraph
 
   " Total supply of output token "
   outputTokenSupply: BigInt!
