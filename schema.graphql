@@ -351,6 +351,14 @@ type Market @entity {
   ### Add-Ons ###
 
   _accuralBlockNumber: Int!
+
+  _supplySideRevenueUSDPerBlock: BigDecimal!
+
+  _protocolSideRevenueUSDPerBlock: BigDecimal!
+
+  _totalRevenueUSDPerBlock: BigDecimal!
+
+  _reserveFactor: BigDecimal!
 }
 
 #################################

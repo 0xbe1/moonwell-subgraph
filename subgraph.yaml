@@ -74,6 +74,8 @@ templates:
           handler: handleLiquidateBorrow
         - event: AccrueInterest(uint256,uint256,uint256)
           handler: handleAccrueInterest
+        - event: NewReserveFactor(uint256,uint256)
+          handler: handleNewReserveFactor
         # - event: Transfer(indexed address,indexed address,uint256)
         #   handler: handleTransfer
       file: ./src/mapping.ts
