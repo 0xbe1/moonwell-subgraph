@@ -27,6 +27,7 @@ import {
   RepayBorrow,
 } from "../generated/templates/CToken/CToken";
 import {
+  Account,
   Borrow,
   Deposit,
   FinancialsDailySnapshot,
@@ -36,6 +37,7 @@ import {
   MarketDailySnapshot,
   Repay,
   Token,
+  UsageMetricsDailySnapshot,
   Withdraw,
 } from "../generated/schema";
 import {
@@ -312,6 +314,8 @@ export function handleMint(event: Mint): void {
     market.inputTokenBalances[0].plus(event.params.mintAmount),
   ];
   market.save();
+
+  snapshotUsage(event.block.number, event.block.timestamp, event.params.minter.toHexString())
 }
 
 //
@@ -366,6 +370,8 @@ export function handleRedeem(event: Redeem): void {
     market.inputTokenBalances[0].minus(event.params.redeemAmount),
   ];
   market.save();
+
+  snapshotUsage(event.block.number, event.block.timestamp, event.params.redeemer.toHexString())
 }
 
 //
@@ -416,6 +422,8 @@ export function handleBorrow(event: BorrowEvent): void {
       .div(exponentToBigDecimal(underlyingToken.decimals))
   );
   borrow.save();
+
+  snapshotUsage(event.block.number, event.block.timestamp, event.params.borrower.toHexString())
 }
 
 //
@@ -469,6 +477,8 @@ export function handleRepayBorrow(event: RepayBorrow): void {
       .div(exponentToBigDecimal(underlyingToken.decimals))
   );
   repay.save();
+
+  snapshotUsage(event.block.number, event.block.timestamp, event.params.payer.toHexString())
 }
 
 //
@@ -860,12 +870,42 @@ function snapshotFinancials(blockNumber: BigInt, blockTimestamp: BigInt): void {
   snapshot.save();
 }
 
+/**
+ * Snapshot usage.
+ * It has to happen in handleMint, handleRedeem, handleBorrow, handleRepayBorrow and handleLiquidate,
+ * because handleAccrueInterest doesn't have access to the accountID
+ * @param blockNumber 
+ * @param blockTimestamp 
+ * @param accountID 
+ */
+function snapshotUsage(blockNumber: BigInt, blockTimestamp: BigInt, accountID: string): void {
+  let snapshotID = (blockNumber.toI32() / SECONDS_PER_DAY).toString();
+  let protocol = getOrCreateProtocol()
+  let snapshot = UsageMetricsDailySnapshot.load(snapshotID)
+  if (!snapshot) {
+    snapshot = new UsageMetricsDailySnapshot(snapshotID);
+    snapshot.protocol = protocol.id
+  }
+  let account = Account.load(accountID);
+  if (!account) {
+    account = new Account(accountID)
+    account.save()
+
+    protocol.totalUniqueUsers += 1
+    protocol.save()
+  }
+  snapshot.totalUniqueUsers = protocol.totalUniqueUsers
+  snapshot.dailyTransactionCount += 1
+  snapshot.blockNumber = blockNumber
+  snapshot.timestamp = blockTimestamp
+  snapshot.save()
+}
+
 function convertRatePerBlockToAPY(ratePerBlock: BigInt): BigDecimal {
   return ratePerBlock
     .times(BigInt.fromI32(365 * 6570))
     .toBigDecimal()
     .div(mantissaFactorBD)
-    .truncate(mantissaFactor);
   // // TODO: compound each day
   // // Formula: check out "Calculating the APY Using Rate Per Block" section https://compound.finance/docs/rate-per-block
   // let a = ratePerBlock.times(BLOCKS_PER_DAY).plus(mantissaFactorBI)

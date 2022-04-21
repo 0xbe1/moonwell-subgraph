@@ -12,4 +12,3 @@ See [matchstick docs](https://github.com/LimeChain/matchstick#docker-) for more 
 ## Todo
 
 - [ ] $COMP
-- [ ] Should I use truncate

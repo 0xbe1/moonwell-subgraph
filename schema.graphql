@@ -230,7 +230,6 @@ type LendingProtocol implements Protocol @entity {
   " All markets that belong to this protocol. protocol.markets won't work, see https://github.com/graphprotocol/graph-ts/issues/219 "
   _marketIDs: [ID!]!
 
-  " All add-ons that belong to this protocol "
   _liquidationIncentive: BigDecimal!
 }
 
