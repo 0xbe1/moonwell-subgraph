@@ -99,12 +99,12 @@ export const cTokenDecimalsBD = exponentToBigDecimal(cTokenDecimals);
 
 // n => 10^n
 export function exponentToBigDecimal(decimals: i32): BigDecimal {
-  let bd = BIGDECIMAL_ONE;
-  let ten = BigDecimal.fromString("10");
+  let result = BIGINT_ONE
+  let ten = BigInt.fromI32(10)
   for (let i = 0; i < decimals; i++) {
-    bd = bd.times(ten);
+    result = result.times(ten);
   }
-  return bd;
+  return result.toBigDecimal();
 }
 
 export const BLOCKS_PER_DAY = BigInt.fromI32(6570);
