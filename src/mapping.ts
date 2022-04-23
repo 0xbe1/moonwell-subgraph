@@ -29,6 +29,7 @@ import {
 import {
   Account,
   Borrow,
+  DailyActiveAccount,
   Deposit,
   FinancialsDailySnapshot,
   LendingProtocol,
@@ -41,16 +42,13 @@ import {
   Withdraw,
 } from "../generated/schema";
 import {
-  BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
   BIGINT_ZERO,
-  cETHAddr,
+  mMOVRAddr,
   comptrollerAddr,
   cTokenDecimals,
   cTokenDecimalsBD,
-  cUSDCAddr,
-  daiAddr,
-  ethAddr,
+  MOVRAddr,
   exponentToBigDecimal,
   LendingType,
   mantissaFactor,
@@ -59,9 +57,9 @@ import {
   ProtocolType,
   RiskType,
   SECONDS_PER_DAY,
+  BLOCKS_PER_DAY,
 } from "./constants";
 import { PriceOracle } from "../generated/templates/CToken/PriceOracle";
-import { PriceOracle2 } from "../generated/templates/CToken/PriceOracle2";
 
 // Protocol <- UserMetricsDailySnapshot, FinancialsDailySnapshot
 //   ↑
@@ -84,9 +82,9 @@ export function handleNewPriceOracle(event: NewPriceOracle): void {
 //
 // event.params.cToken: The address of the market (token) to list
 export function handleMarketListed(event: MarketListed): void {
-  CTokenTemplate.create(event.params.cToken);
+  CTokenTemplate.create(event.params.mToken); // diff
 
-  let cTokenAddr = event.params.cToken;
+  let cTokenAddr = event.params.mToken; // diff
   let cToken = Token.load(cTokenAddr.toHexString());
   if (cToken != null) {
     return;
@@ -96,15 +94,15 @@ export function handleMarketListed(event: MarketListed): void {
   //
   // create cToken
   //
-  let cTokenContract = CToken.bind(event.params.cToken);
+  let cTokenContract = CToken.bind(event.params.mToken); // diff
 
   // get underlying token
   let underlyingTokenAddr: Address;
 
   // if we cannot fetch the underlying token of a non-cETH cToken
   // then fail early
-  if (cTokenAddr == cETHAddr) {
-    underlyingTokenAddr = ethAddr;
+  if (cTokenAddr == mMOVRAddr) {
+    underlyingTokenAddr = MOVRAddr;
   } else {
     let underlyingTokenAddrResult = cTokenContract.try_underlying();
     if (underlyingTokenAddrResult.reverted) {
@@ -118,9 +116,9 @@ export function handleMarketListed(event: MarketListed): void {
   }
 
   cToken = new Token(cTokenAddr.toHexString());
-  if (cTokenAddr == cETHAddr) {
-    cToken.name = "Compound Ether";
-    cToken.symbol = "cETH";
+  if (cTokenAddr == mMOVRAddr) {
+    cToken.name = "Moonwell MOVR";
+    cToken.symbol = "mMOVR";
     cToken.decimals = cTokenDecimals;
   } else {
     cToken.name = getOrElse<string>(cTokenContract.try_name(), "unknown");
@@ -133,15 +131,10 @@ export function handleMarketListed(event: MarketListed): void {
   // create underlying token
   //
   let underlyingToken = new Token(underlyingTokenAddr.toHexString());
-  if (underlyingTokenAddr == ethAddr) {
+  if (underlyingTokenAddr == MOVRAddr) {
     // don't want to call CEther contract, hardcode instead
-    underlyingToken.name = "Ether";
-    underlyingToken.symbol = "ETH";
-    underlyingToken.decimals = 18;
-  } else if (underlyingTokenAddr == daiAddr) {
-    // this is a DSToken that doesn't have name and symbol, hardcode instead
-    underlyingToken.name = "Dai Stablecoin v1.0 (DAI)";
-    underlyingToken.symbol = "DAI";
+    underlyingToken.name = "MOVR";
+    underlyingToken.symbol = "MOVR";
     underlyingToken.decimals = 18;
   } else {
     let underlyingTokenContract = ERC20.bind(underlyingTokenAddr);
@@ -201,7 +194,7 @@ export function handleMarketListed(event: MarketListed): void {
 // event.params.oldCollateralFactorMantissa:
 // event.params.newCollateralFactorMantissa:
 export function handleNewCollateralFactor(event: NewCollateralFactor): void {
-  let marketID = event.params.cToken.toHexString();
+  let marketID = event.params.mToken.toHexString(); // diff
   let market = Market.load(marketID);
   if (market == null) {
     log.warning("[handleNewCollateralFactor] Market not found: {}", [marketID]);
@@ -529,7 +522,7 @@ export function handleLiquidateBorrow(event: LiquidateBorrow): void {
     return;
   }
 
-  let liquidatedCTokenMarketID = event.params.cTokenCollateral.toHexString();
+  let liquidatedCTokenMarketID = event.params.mTokenCollateral.toHexString(); // diff
   let liquidatedCTokenMarket = Market.load(liquidatedCTokenMarketID);
   if (!liquidatedCTokenMarket) {
     log.warning(
@@ -581,7 +574,16 @@ export function handleLiquidateBorrow(event: LiquidateBorrow): void {
 
 // This function is called whenever mint, redeem, borrow, repay, liquidateBorrow happens
 export function handleAccrueInterest(event: AccrueInterest): void {
-  updateMarket(event.address, event.block.number.toI32());
+  let marketID = event.address.toHexString();
+  let market = Market.load(marketID);
+  if (!market) {
+    log.warning("[handleAccrueInterest] Market not found: {}", [marketID]);
+    return;
+  }
+  if (market._accuralBlockNumber >= event.block.number.toI32()) {
+    return;
+  }
+  updateMarket(marketID, event.block.number.toI32());
   updateProtocol();
   snapshotMarket(
     event.address.toHexString(),
@@ -595,12 +597,12 @@ function getOrCreateProtocol(): LendingProtocol {
   let protocol = LendingProtocol.load(comptrollerAddr.toHexString());
   if (!protocol) {
     protocol = new LendingProtocol(comptrollerAddr.toHexString());
-    protocol.name = "Compound V2";
-    protocol.slug = "compound-v2";
+    protocol.name = "Moonwell"; // diff
+    protocol.slug = "moonwell"; // diff
     protocol.schemaVersion = "1.1.0";
     protocol.subgraphVersion = "0.8.0";
     protocol.methodologyVersion = "1.0.0";
-    protocol.network = Network.ETHEREUM;
+    protocol.network = Network.MOONRIVER; // diff
     protocol.type = ProtocolType.LENDING;
     protocol.lendingType = LendingType.POOLED;
     protocol.riskType = RiskType.GLOBAL;
@@ -634,17 +636,14 @@ function getOrCreateProtocol(): LendingProtocol {
  * @param blockNumber
  * @returns
  */
-function updateMarket(marketAddress: Address, blockNumber: i32): void {
-  let marketID = marketAddress.toHexString();
+function updateMarket(marketID: string, blockNumber: i32): void {
   let market = Market.load(marketID);
   if (!market) {
     log.warning("[updateMarket] Market not found: {}", [marketID]);
     return;
   }
-  // TODO: move this check to handleAccrueInterest?
-  if (market._accuralBlockNumber >= blockNumber) {
-    return;
-  }
+  let marketAddress = Address.fromString(marketID);
+
   let underlyingToken = Token.load(market.inputTokens[0]);
   if (!underlyingToken) {
     log.warning("[updateMarket] Underlying token not found: {}", [
@@ -714,7 +713,7 @@ function updateMarket(marketAddress: Address, blockNumber: i32): void {
     market.totalBorrowUSD = totalBorrowUSD;
   }
 
-  let supplyRatePerBlockResult = cTokenContract.try_supplyRatePerBlock();
+  let supplyRatePerBlockResult = cTokenContract.try_supplyRatePerTimestamp(); // diff
   if (supplyRatePerBlockResult.reverted) {
     log.warning(
       "[updateMarket] Failed to get supplyRatePerBlock of Market {}",
@@ -726,7 +725,7 @@ function updateMarket(marketAddress: Address, blockNumber: i32): void {
     );
   }
 
-  let borrowRatePerBlockResult = cTokenContract.try_borrowRatePerBlock();
+  let borrowRatePerBlockResult = cTokenContract.try_borrowRatePerTimestamp(); // diff
   let borrowRatePerBlock = BIGDECIMAL_ZERO;
   if (borrowRatePerBlockResult.reverted) {
     log.warning(
@@ -767,8 +766,11 @@ function updateMarket(marketAddress: Address, blockNumber: i32): void {
  * - [x] totalBorrowUSD
  */
 function updateProtocol(): void {
-  // TODO: should just get, not getOrCreate
-  let protocol = getOrCreateProtocol();
+  let protocol = LendingProtocol.load(comptrollerAddr.toHexString());
+  if (!protocol) {
+    log.error("[updateProtocol] Protocol not found, this SHOULD NOT happen", [])
+    return
+  }
   let protocolTotalValueLockedUSD = BIGDECIMAL_ZERO;
   let protocolTotalDepositUSD = BIGDECIMAL_ZERO;
   let protocolTotalBorrowUSD = BIGDECIMAL_ZERO;
@@ -808,7 +810,7 @@ function snapshotMarket(
 
   let snapshotID = marketID
     .concat("-")
-    .concat((blockNumber.toI32() / SECONDS_PER_DAY).toString());
+    .concat((blockTimestamp.toI32() / SECONDS_PER_DAY).toString());
   let snapshot = new MarketDailySnapshot(snapshotID);
   snapshot.protocol = market.protocol;
   snapshot.market = marketID;
@@ -832,10 +834,14 @@ function snapshotMarket(
 }
 
 function snapshotFinancials(blockNumber: BigInt, blockTimestamp: BigInt): void {
-  let snapshotID = (blockNumber.toI32() / SECONDS_PER_DAY).toString();
+  let snapshotID = (blockTimestamp.toI32() / SECONDS_PER_DAY).toString();
   let snapshot = new FinancialsDailySnapshot(snapshotID);
 
-  let protocol = getOrCreateProtocol();
+  let protocol = LendingProtocol.load(comptrollerAddr.toHexString());
+  if (!protocol) {
+    log.error("[snapshotFinancials] Protocol not found, this SHOULD NOT happen", [])
+    return
+  }
   snapshot.protocol = protocol.id;
   snapshot.totalValueLockedUSD = protocol.totalValueLockedUSD;
   snapshot.totalDepositUSD = protocol.totalDepositUSD;
@@ -899,8 +905,12 @@ function snapshotUsage(
   blockTimestamp: BigInt,
   accountID: string
 ): void {
-  let snapshotID = (blockNumber.toI32() / SECONDS_PER_DAY).toString();
-  let protocol = getOrCreateProtocol();
+  let protocol = LendingProtocol.load(comptrollerAddr.toHexString());
+  if (!protocol) {
+    log.error("[snapshotUsage] Protocol not found, this SHOULD NOT happen", [])
+    return
+  }
+  let snapshotID = (blockTimestamp.toI32() / SECONDS_PER_DAY).toString();
   let snapshot = UsageMetricsDailySnapshot.load(snapshotID);
   if (!snapshot) {
     snapshot = new UsageMetricsDailySnapshot(snapshotID);
@@ -914,6 +924,14 @@ function snapshotUsage(
     protocol.totalUniqueUsers += 1;
     protocol.save();
   }
+  let dailyAccountID = snapshotID.concat("-").concat(accountID);
+  let dailyActiveAccount = DailyActiveAccount.load(dailyAccountID)
+  if (!dailyActiveAccount) {
+    dailyActiveAccount = new DailyActiveAccount(dailyAccountID);
+    dailyActiveAccount.save();
+
+    snapshot.activeUsers += 1;
+  }
   snapshot.totalUniqueUsers = protocol.totalUniqueUsers;
   snapshot.dailyTransactionCount += 1;
   snapshot.blockNumber = blockNumber;
@@ -923,7 +941,7 @@ function snapshotUsage(
 
 function convertRatePerBlockToAPY(ratePerBlock: BigInt): BigDecimal {
   return ratePerBlock
-    .times(BigInt.fromI32(365 * 6570))
+    .times(BigInt.fromI32(365 * BLOCKS_PER_DAY))
     .toBigDecimal()
     .div(mantissaFactorBD);
   // // TODO: compound each day
@@ -939,97 +957,33 @@ function convertRatePerBlockToAPY(ratePerBlock: BigInt): BigDecimal {
 //   return a.pow(n).toBigDecimal().div(b.pow(n).toBigDecimal())
 // }
 
+// major diff
 function getTokenPriceUSD(
   cTokenAddr: Address,
   underlyingAddr: Address,
   underlyingDecimals: i32,
   blockNumber: i32
 ): BigDecimal {
-  // After block 10678764 price is calculated based on USD instead of ETH
-  if (blockNumber > 10678764) {
-    return getTokenPrice(
-      blockNumber,
-      cTokenAddr,
-      underlyingAddr,
-      underlyingDecimals
-    );
+  let protocol = LendingProtocol.load(comptrollerAddr.toHexString());
+  if (!protocol) {
+    log.error("[getTokenPriceUSD] Protocol not found, this SHOULD NOT happen", [])
+    return BIGDECIMAL_ZERO
   }
-
-  let usdPriceInEth = getTokenPrice(
-    blockNumber,
-    cUSDCAddr,
-    Address.fromString("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
-    6
-  );
-
-  if (cTokenAddr == cETHAddr) {
-    return BIGDECIMAL_ONE.div(usdPriceInEth).truncate(underlyingDecimals);
-  }
-
-  let tokenPriceEth = getTokenPrice(
-    blockNumber,
-    cTokenAddr,
-    underlyingAddr,
-    underlyingDecimals
-  );
-
-  return tokenPriceEth
-    .truncate(underlyingDecimals)
-    .div(usdPriceInEth)
-    .truncate(underlyingDecimals);
-}
-
-// Used for all cERC20 contracts
-// Either USD or ETH price is returned
-function getTokenPrice(
-  blockNumber: i32,
-  cTokenAddr: Address,
-  underlyingAddr: Address,
-  underlyingDecimals: i32
-): BigDecimal {
-  let protocol = getOrCreateProtocol();
   let oracleAddress = Address.fromString(protocol._priceOracle);
-  let priceOracle1Address = Address.fromString(
-    "02557a5e05defeffd4cae6d83ea3d173b272c904"
-  );
 
-  /* PriceOracle2 is used at the block the Comptroller starts using it.
-   * see here https://etherscan.io/address/0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b#events
-   * Search for event topic 0xd52b2b9b7e9ee655fcb95d2e5b9e0c9f69e7ef2b8e9d2d0ea78402d576d22e22,
-   * and see block 7715908.
-   *
-   * This must use the cToken address.
-   *
+  /**
    * Note this returns the value without factoring in token decimals and wei, so we must divide
    * the number by (ethDecimals - tokenDecimals) and again by the mantissa.
    * USDC would be 10 ^ ((18 - 6) + 18) = 10 ^ 30
-   *
-   * Note that they deployed 3 different PriceOracles at the beginning of the Comptroller,
-   * and that they handle the decimals different, which can break the subgraph. So we actually
-   * defer to Oracle 1 before block 7715908, which works,
-   * until this one is deployed, which was used for 121 days */
-  if (blockNumber > 7715908) {
+   */
     let mantissaDecimalFactor = 18 - underlyingDecimals + 18;
     let bdFactor = exponentToBigDecimal(mantissaDecimalFactor);
-    let oracle2 = PriceOracle2.bind(oracleAddress);
-    let tryPrice = oracle2.try_getUnderlyingPrice(cTokenAddr);
+    let oracle = PriceOracle.bind(oracleAddress);
+    let tryPrice = oracle.try_getUnderlyingPrice(cTokenAddr);
 
     return tryPrice.reverted
       ? BIGDECIMAL_ZERO
       : tryPrice.value.toBigDecimal().div(bdFactor);
-
-    /* PriceOracle(1) is used (only for the first ~100 blocks of Comptroller. Annoying but we must
-     * handle this. We use it for more than 100 blocks, see reason at top of if statement
-     * of PriceOracle2.
-     *
-     * This must use the token address, not the cToken address.
-     *
-     * Note this returns the value already factoring in token decimals and wei, therefore
-     * we only need to divide by the mantissa, 10^18 */
-  }
-
-  let oracle1 = PriceOracle.bind(priceOracle1Address);
-  return oracle1.getPrice(underlyingAddr).toBigDecimal().div(mantissaFactorBD);
 }
 
 function getOrElse<T>(result: ethereum.CallResult<T>, defaultValue: T): T {

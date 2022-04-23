@@ -1,14 +1,12 @@
-## Compound V2 Subgraph
+## Moonwell Subgraph
 
-## Development
+Moonwell is a Compound fork on Moonriver.
 
-To run unit tests with matchstick:
+The major code difference is it renames c-prefix into m-prefix for all concepts, including:
 
-1. Build a Matchstick image `docker build -t matchstick .`
-1. Run `yarn test` under the project root
+- cToken -> mToken
+- cErc -> mErc
 
-See [matchstick docs](https://github.com/LimeChain/matchstick#docker-) for more details.
+Besides, it also rename:
 
-## Todo
-
-- [ ] $COMP
+- (supplyRate/borrowRate)PerBlock -> (supplyRate/borrowRate)PerTimestamp
