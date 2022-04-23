@@ -5,10 +5,10 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "test": "docker run -it --rm --mount type=bind,source=$(pwd),target=/matchstick matchstick",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ compound-v2",
-    "create-local": "graph create --node http://localhost:8020/ compound-v2",
-    "remove-local": "graph remove --node http://localhost:8020/ compound-v2",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 compound-v2"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ 0xbe1/moonwell-subgraph",
+    "create-local": "graph create --node http://localhost:8020/ 0xbe1/moonwell-subgraph",
+    "remove-local": "graph remove --node http://localhost:8020/ 0xbe1/moonwell-subgraph",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 0xbe1/moonwell-subgraph"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.28.0",
