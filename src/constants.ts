@@ -46,6 +46,17 @@ export namespace RewardTokenType {
   export const BORROW = "BORROW";
 }
 
+export namespace InterestRateType {
+  export const STABLE = "STABLE";
+  export const VARIABLE = "VARIABLE";
+  export const FIXED_TERM = "FIXED_TERM";
+}
+
+export namespace InterestRateSide {
+  export const LENDER = "LENDER";
+  export const BORROWER = "BORROWER";
+}
+
 //////////////////////////////
 /////     Addresses      /////
 //////////////////////////////
@@ -59,6 +70,9 @@ export let mMOVRAddr = Address.fromString(
 export let MOVRAddr = Address.fromString(
   "0x0000000000000000000000000000000000000000"
 );
+export let MFAMAddr = Address.fromString(
+  "0xbb8d88bcd9749636bc4d2be22aac4bb3b01a58f1"
+);
 
 ////////////////////////
 ///// Type Helpers /////
@@ -69,12 +83,15 @@ export const BIGINT_ONE = BigInt.fromI32(1);
 
 export const BIGDECIMAL_ZERO = new BigDecimal(BIGINT_ZERO);
 export const BIGDECIMAL_ONE = new BigDecimal(BIGINT_ONE);
+export const BIGDECIMAL_HUNDRED = new BigDecimal(BigInt.fromI32(100));
 
 /////////////////////
 ///// Date/Time /////
 /////////////////////
 
+export const SECONDS_PER_YEAR = 60 * 60 * 24 * 365;
 export const SECONDS_PER_DAY = 60 * 60 * 24; // 86400
+export const SECONDS_PER_HOUR = 60 * 60; // 3600
 
 /////////////////////////////
 /////        Math       /////
