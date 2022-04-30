@@ -176,7 +176,7 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "mTokenCollateral",
+        "name": "cTokenCollateral",
         "type": "address"
       },
       {
@@ -307,25 +307,6 @@
       }
     ],
     "name": "NewPendingAdmin",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "oldProtocolSeizeShareMantissa",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "newProtocolSeizeShareMantissa",
-        "type": "uint256"
-      }
-    ],
-    "name": "NewProtocolSeizeShare",
     "type": "event"
   },
   {
@@ -587,21 +568,6 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "newProtocolSeizeShareMantissa",
-        "type": "uint256"
-      }
-    ],
-    "name": "_setProtocolSeizeShare",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "internalType": "uint256",
         "name": "newReserveFactorMantissa",
         "type": "uint256"
       }
@@ -732,7 +698,7 @@
   {
     "constant": true,
     "inputs": [],
-    "name": "borrowRatePerTimestamp",
+    "name": "borrowRatePerBlock",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "payable": false,
     "stateMutability": "view",
@@ -850,7 +816,7 @@
   {
     "constant": true,
     "inputs": [],
-    "name": "isMToken",
+    "name": "isCToken",
     "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
     "payable": false,
     "stateMutability": "view",
@@ -862,8 +828,8 @@
       { "internalType": "address", "name": "borrower", "type": "address" },
       { "internalType": "uint256", "name": "repayAmount", "type": "uint256" },
       {
-        "internalType": "contract MTokenInterface",
-        "name": "mTokenCollateral",
+        "internalType": "contract CTokenInterface",
+        "name": "cTokenCollateral",
         "type": "address"
       }
     ],
@@ -983,7 +949,7 @@
   {
     "constant": true,
     "inputs": [],
-    "name": "supplyRatePerTimestamp",
+    "name": "supplyRatePerBlock",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "payable": false,
     "stateMutability": "view",

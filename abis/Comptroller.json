@@ -29,8 +29,8 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "contract CToken",
+        "name": "cToken",
         "type": "address"
       },
       {
@@ -53,25 +53,107 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "uint8",
-        "name": "rewardToken",
-        "type": "uint8"
-      },
-      {
         "indexed": true,
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "address",
+        "name": "user",
         "type": "address"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "newBorrowRewardSpeed",
+        "name": "oldCompAccrued",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newCompAccrued",
         "type": "uint256"
       }
     ],
-    "name": "BorrowRewardSpeedUpdated",
+    "name": "CompAccruedAdjusted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "contract CToken",
+        "name": "cToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newSpeed",
+        "type": "uint256"
+      }
+    ],
+    "name": "CompBorrowSpeedUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "CompGranted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "oldCompReceivable",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newCompReceivable",
+        "type": "uint256"
+      }
+    ],
+    "name": "CompReceivableUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "contract CToken",
+        "name": "cToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newSpeed",
+        "type": "uint256"
+      }
+    ],
+    "name": "CompSupplySpeedUpdated",
     "type": "event"
   },
   {
@@ -90,7 +172,7 @@
         "type": "uint256"
       }
     ],
-    "name": "ContributorWellSpeedUpdated",
+    "name": "ContributorCompSpeedUpdated",
     "type": "event"
   },
   {
@@ -98,14 +180,8 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "uint8",
-        "name": "tokenType",
-        "type": "uint8"
-      },
-      {
-        "indexed": true,
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "contract CToken",
+        "name": "cToken",
         "type": "address"
       },
       {
@@ -117,17 +193,17 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "wellDelta",
+        "name": "compDelta",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "wellBorrowIndex",
+        "name": "compBorrowIndex",
         "type": "uint256"
       }
     ],
-    "name": "DistributedBorrowerReward",
+    "name": "DistributedBorrowerComp",
     "type": "event"
   },
   {
@@ -135,36 +211,30 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "uint8",
-        "name": "tokenType",
-        "type": "uint8"
-      },
-      {
-        "indexed": true,
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "contract CToken",
+        "name": "cToken",
         "type": "address"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "borrower",
+        "name": "supplier",
         "type": "address"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "wellDelta",
+        "name": "compDelta",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "wellBorrowIndex",
+        "name": "compSupplyIndex",
         "type": "uint256"
       }
     ],
-    "name": "DistributedSupplierReward",
+    "name": "DistributedSupplierComp",
     "type": "event"
   },
   {
@@ -197,8 +267,8 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "contract CToken",
+        "name": "cToken",
         "type": "address"
       },
       {
@@ -216,8 +286,8 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "contract CToken",
+        "name": "cToken",
         "type": "address"
       },
       {
@@ -235,8 +305,8 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "contract CToken",
+        "name": "cToken",
         "type": "address"
       }
     ],
@@ -248,8 +318,8 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "contract CToken",
+        "name": "cToken",
         "type": "address"
       },
       {
@@ -305,8 +375,8 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "contract CToken",
+        "name": "cToken",
         "type": "address"
       },
       {
@@ -387,46 +457,20 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "uint8",
-        "name": "rewardToken",
-        "type": "uint8"
-      },
-      {
-        "indexed": true,
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "address",
+        "name": "oldRewardDistributor",
         "type": "address"
       },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "newSupplyRewardSpeed",
-        "type": "uint256"
-      }
-    ],
-    "name": "SupplyRewardSpeedUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
       {
         "indexed": false,
         "internalType": "address",
-        "name": "recipient",
+        "name": "newRewardDistributor",
         "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
       }
     ],
-    "name": "WellGranted",
+    "name": "NewRewardDistributor",
     "type": "event"
   },
-  { "payable": true, "stateMutability": "payable", "type": "fallback" },
   {
     "constant": false,
     "inputs": [
@@ -449,22 +493,6 @@
     "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
     "payable": false,
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "internalType": "address payable",
-        "name": "recipient",
-        "type": "address"
-      },
-      { "internalType": "uint256", "name": "amount", "type": "uint256" }
-    ],
-    "name": "_grantWell",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -495,8 +523,8 @@
     "constant": false,
     "inputs": [
       {
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "contract CToken",
+        "name": "cToken",
         "type": "address"
       },
       { "internalType": "bool", "name": "state", "type": "bool" }
@@ -526,8 +554,8 @@
     "constant": false,
     "inputs": [
       {
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "contract CToken",
+        "name": "cToken",
         "type": "address"
       },
       {
@@ -561,8 +589,8 @@
     "constant": false,
     "inputs": [
       {
-        "internalType": "contract MToken[]",
-        "name": "mTokens",
+        "internalType": "contract CToken[]",
+        "name": "cTokens",
         "type": "address[]"
       },
       {
@@ -581,8 +609,8 @@
     "constant": false,
     "inputs": [
       {
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "contract CToken",
+        "name": "cToken",
         "type": "address"
       },
       { "internalType": "bool", "name": "state", "type": "bool" }
@@ -626,25 +654,14 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "uint8", "name": "rewardType", "type": "uint8" },
       {
-        "internalType": "contract MToken",
-        "name": "mToken",
+        "internalType": "address payable",
+        "name": "newRewardDistributor",
         "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "supplyRewardSpeed",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "borrowRewardSpeed",
-        "type": "uint256"
       }
     ],
-    "name": "_setRewardSpeed",
-    "outputs": [],
+    "name": "_setRewardDistributor",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
@@ -670,7 +687,7 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "contract MToken", "name": "mToken", "type": "address" }
+      { "internalType": "contract CToken", "name": "cToken", "type": "address" }
     ],
     "name": "_supportMarket",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
@@ -686,7 +703,7 @@
     ],
     "name": "accountAssets",
     "outputs": [
-      { "internalType": "contract MToken", "name": "", "type": "address" }
+      { "internalType": "contract CToken", "name": "", "type": "address" }
     ],
     "payable": false,
     "stateMutability": "view",
@@ -706,7 +723,7 @@
     "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "name": "allMarkets",
     "outputs": [
-      { "internalType": "contract MToken", "name": "", "type": "address" }
+      { "internalType": "contract CToken", "name": "", "type": "address" }
     ],
     "payable": false,
     "stateMutability": "view",
@@ -715,7 +732,7 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "address", "name": "mToken", "type": "address" },
+      { "internalType": "address", "name": "cToken", "type": "address" },
       { "internalType": "address", "name": "borrower", "type": "address" },
       { "internalType": "uint256", "name": "borrowAmount", "type": "uint256" }
     ],
@@ -753,21 +770,9 @@
     "type": "function"
   },
   {
-    "constant": true,
-    "inputs": [
-      { "internalType": "uint8", "name": "", "type": "uint8" },
-      { "internalType": "address", "name": "", "type": "address" }
-    ],
-    "name": "borrowRewardSpeeds",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "constant": false,
     "inputs": [
-      { "internalType": "address", "name": "mToken", "type": "address" },
+      { "internalType": "address", "name": "cToken", "type": "address" },
       { "internalType": "address", "name": "borrower", "type": "address" },
       { "internalType": "uint256", "name": "borrowAmount", "type": "uint256" }
     ],
@@ -781,7 +786,7 @@
     "constant": true,
     "inputs": [
       { "internalType": "address", "name": "account", "type": "address" },
-      { "internalType": "contract MToken", "name": "mToken", "type": "address" }
+      { "internalType": "contract CToken", "name": "cToken", "type": "address" }
     ],
     "name": "checkMembership",
     "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
@@ -790,66 +795,130 @@
     "type": "function"
   },
   {
-    "constant": false,
-    "inputs": [
-      { "internalType": "uint8", "name": "rewardType", "type": "uint8" },
-      { "internalType": "address payable", "name": "holder", "type": "address" }
-    ],
-    "name": "claimReward",
-    "outputs": [],
+    "constant": true,
+    "inputs": [],
+    "name": "closeFactorMantissa",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "payable": false,
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": false,
-    "inputs": [
-      { "internalType": "uint8", "name": "rewardType", "type": "uint8" },
-      {
-        "internalType": "address payable",
-        "name": "holder",
-        "type": "address"
-      },
-      {
-        "internalType": "contract MToken[]",
-        "name": "mTokens",
-        "type": "address[]"
-      }
-    ],
-    "name": "claimReward",
-    "outputs": [],
+    "constant": true,
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "compAccrued",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "payable": false,
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": false,
-    "inputs": [
-      { "internalType": "uint8", "name": "rewardType", "type": "uint8" },
-      {
-        "internalType": "address payable[]",
-        "name": "holders",
-        "type": "address[]"
-      },
-      {
-        "internalType": "contract MToken[]",
-        "name": "mTokens",
-        "type": "address[]"
-      },
-      { "internalType": "bool", "name": "borrowers", "type": "bool" },
-      { "internalType": "bool", "name": "suppliers", "type": "bool" }
+    "constant": true,
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "compBorrowSpeeds",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "compBorrowState",
+    "outputs": [
+      { "internalType": "uint224", "name": "index", "type": "uint224" },
+      { "internalType": "uint32", "name": "block", "type": "uint32" }
     ],
-    "name": "claimReward",
-    "outputs": [],
-    "payable": true,
-    "stateMutability": "payable",
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      { "internalType": "address", "name": "", "type": "address" },
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
+    "name": "compBorrowerIndex",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "compContributorSpeeds",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "payable": false,
+    "stateMutability": "view",
     "type": "function"
   },
   {
     "constant": true,
     "inputs": [],
-    "name": "closeFactorMantissa",
+    "name": "compInitialIndex",
+    "outputs": [{ "internalType": "uint224", "name": "", "type": "uint224" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "compRate",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "compReceivable",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "compSpeeds",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      { "internalType": "address", "name": "", "type": "address" },
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
+    "name": "compSupplierIndex",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "compSupplySpeeds",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "compSupplyState",
+    "outputs": [
+      { "internalType": "uint224", "name": "index", "type": "uint224" },
+      { "internalType": "uint32", "name": "block", "type": "uint32" }
+    ],
     "payable": false,
     "stateMutability": "view",
     "type": "function"
@@ -866,7 +935,7 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "address[]", "name": "mTokens", "type": "address[]" }
+      { "internalType": "address[]", "name": "cTokens", "type": "address[]" }
     ],
     "name": "enterMarkets",
     "outputs": [
@@ -879,7 +948,7 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "address", "name": "mTokenAddress", "type": "address" }
+      { "internalType": "address", "name": "cTokenAddress", "type": "address" }
     ],
     "name": "exitMarket",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
@@ -907,7 +976,7 @@
     "inputs": [],
     "name": "getAllMarkets",
     "outputs": [
-      { "internalType": "contract MToken[]", "name": "", "type": "address[]" }
+      { "internalType": "contract CToken[]", "name": "", "type": "address[]" }
     ],
     "payable": false,
     "stateMutability": "view",
@@ -920,7 +989,7 @@
     ],
     "name": "getAssetsIn",
     "outputs": [
-      { "internalType": "contract MToken[]", "name": "", "type": "address[]" }
+      { "internalType": "contract CToken[]", "name": "", "type": "address[]" }
     ],
     "payable": false,
     "stateMutability": "view",
@@ -939,7 +1008,7 @@
     "constant": true,
     "inputs": [
       { "internalType": "address", "name": "account", "type": "address" },
-      { "internalType": "address", "name": "mTokenModify", "type": "address" },
+      { "internalType": "address", "name": "cTokenModify", "type": "address" },
       { "internalType": "uint256", "name": "redeemTokens", "type": "uint256" },
       { "internalType": "uint256", "name": "borrowAmount", "type": "uint256" }
     ],
@@ -956,17 +1025,39 @@
   {
     "constant": true,
     "inputs": [],
-    "name": "initialIndexConstant",
-    "outputs": [{ "internalType": "uint224", "name": "", "type": "uint224" }],
+    "name": "isComptroller",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
     "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
     "constant": true,
-    "inputs": [],
-    "name": "isComptroller",
+    "inputs": [
+      { "internalType": "contract CToken", "name": "cToken", "type": "address" }
+    ],
+    "name": "isDeprecated",
     "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      { "internalType": "address", "name": "cTokenAddress", "type": "address" }
+    ],
+    "name": "isMarketListed",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "lastContributorBlock",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "payable": false,
     "stateMutability": "view",
     "type": "function"
@@ -976,12 +1067,12 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "mTokenBorrowed",
+        "name": "cTokenBorrowed",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "mTokenCollateral",
+        "name": "cTokenCollateral",
         "type": "address"
       },
       { "internalType": "address", "name": "liquidator", "type": "address" },
@@ -999,12 +1090,12 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "mTokenBorrowed",
+        "name": "cTokenBorrowed",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "mTokenCollateral",
+        "name": "cTokenCollateral",
         "type": "address"
       },
       { "internalType": "address", "name": "liquidator", "type": "address" },
@@ -1027,12 +1118,12 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "mTokenBorrowed",
+        "name": "cTokenBorrowed",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "mTokenCollateral",
+        "name": "cTokenCollateral",
         "type": "address"
       },
       {
@@ -1070,7 +1161,7 @@
         "name": "collateralFactorMantissa",
         "type": "uint256"
       },
-      { "internalType": "bool", "name": "isWelled", "type": "bool" }
+      { "internalType": "bool", "name": "isComped", "type": "bool" }
     ],
     "payable": false,
     "stateMutability": "view",
@@ -1088,7 +1179,7 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "address", "name": "mToken", "type": "address" },
+      { "internalType": "address", "name": "cToken", "type": "address" },
       { "internalType": "address", "name": "minter", "type": "address" },
       { "internalType": "uint256", "name": "mintAmount", "type": "uint256" }
     ],
@@ -1110,7 +1201,7 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "address", "name": "mToken", "type": "address" },
+      { "internalType": "address", "name": "cToken", "type": "address" },
       { "internalType": "address", "name": "minter", "type": "address" },
       {
         "internalType": "uint256",
@@ -1164,9 +1255,18 @@
     "type": "function"
   },
   {
+    "constant": true,
+    "inputs": [],
+    "name": "proposal65FixExecuted",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "constant": false,
     "inputs": [
-      { "internalType": "address", "name": "mToken", "type": "address" },
+      { "internalType": "address", "name": "cToken", "type": "address" },
       { "internalType": "address", "name": "redeemer", "type": "address" },
       { "internalType": "uint256", "name": "redeemTokens", "type": "uint256" }
     ],
@@ -1179,7 +1279,7 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "address", "name": "mToken", "type": "address" },
+      { "internalType": "address", "name": "cToken", "type": "address" },
       { "internalType": "address", "name": "redeemer", "type": "address" },
       { "internalType": "uint256", "name": "redeemAmount", "type": "uint256" },
       { "internalType": "uint256", "name": "redeemTokens", "type": "uint256" }
@@ -1193,7 +1293,7 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "address", "name": "mToken", "type": "address" },
+      { "internalType": "address", "name": "cToken", "type": "address" },
       { "internalType": "address", "name": "payer", "type": "address" },
       { "internalType": "address", "name": "borrower", "type": "address" },
       { "internalType": "uint256", "name": "repayAmount", "type": "uint256" }
@@ -1207,7 +1307,7 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "address", "name": "mToken", "type": "address" },
+      { "internalType": "address", "name": "cToken", "type": "address" },
       { "internalType": "address", "name": "payer", "type": "address" },
       { "internalType": "address", "name": "borrower", "type": "address" },
       {
@@ -1225,86 +1325,11 @@
   },
   {
     "constant": true,
-    "inputs": [
-      { "internalType": "uint8", "name": "", "type": "uint8" },
-      { "internalType": "address", "name": "", "type": "address" }
-    ],
-    "name": "rewardAccrued",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      { "internalType": "uint8", "name": "", "type": "uint8" },
-      { "internalType": "address", "name": "", "type": "address" }
-    ],
-    "name": "rewardBorrowState",
-    "outputs": [
-      { "internalType": "uint224", "name": "index", "type": "uint224" },
-      { "internalType": "uint32", "name": "timestamp", "type": "uint32" }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      { "internalType": "uint8", "name": "", "type": "uint8" },
-      { "internalType": "address", "name": "", "type": "address" },
-      { "internalType": "address", "name": "", "type": "address" }
-    ],
-    "name": "rewardBorrowerIndex",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
     "inputs": [],
-    "name": "rewardGlmr",
-    "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      { "internalType": "uint8", "name": "", "type": "uint8" },
-      { "internalType": "address", "name": "", "type": "address" },
-      { "internalType": "address", "name": "", "type": "address" }
-    ],
-    "name": "rewardSupplierIndex",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      { "internalType": "uint8", "name": "", "type": "uint8" },
-      { "internalType": "address", "name": "", "type": "address" }
-    ],
-    "name": "rewardSupplyState",
+    "name": "rewardDistributor",
     "outputs": [
-      { "internalType": "uint224", "name": "index", "type": "uint224" },
-      { "internalType": "uint32", "name": "timestamp", "type": "uint32" }
+      { "internalType": "address payable", "name": "", "type": "address" }
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "rewardWell",
-    "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
     "payable": false,
     "stateMutability": "view",
     "type": "function"
@@ -1314,12 +1339,12 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "mTokenCollateral",
+        "name": "cTokenCollateral",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "mTokenBorrowed",
+        "name": "cTokenBorrowed",
         "type": "address"
       },
       { "internalType": "address", "name": "liquidator", "type": "address" },
@@ -1346,12 +1371,12 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "mTokenCollateral",
+        "name": "cTokenCollateral",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "mTokenBorrowed",
+        "name": "cTokenBorrowed",
         "type": "address"
       },
       { "internalType": "address", "name": "liquidator", "type": "address" },
@@ -1367,30 +1392,7 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "address", "name": "newWellAddress", "type": "address" }
-    ],
-    "name": "setWellAddress",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      { "internalType": "uint8", "name": "", "type": "uint8" },
-      { "internalType": "address", "name": "", "type": "address" }
-    ],
-    "name": "supplyRewardSpeeds",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "internalType": "address", "name": "mToken", "type": "address" },
+      { "internalType": "address", "name": "cToken", "type": "address" },
       { "internalType": "address", "name": "src", "type": "address" },
       { "internalType": "address", "name": "dst", "type": "address" },
       { "internalType": "uint256", "name": "transferTokens", "type": "uint256" }
@@ -1413,7 +1415,7 @@
   {
     "constant": false,
     "inputs": [
-      { "internalType": "address", "name": "mToken", "type": "address" },
+      { "internalType": "address", "name": "cToken", "type": "address" },
       { "internalType": "address", "name": "src", "type": "address" },
       { "internalType": "address", "name": "dst", "type": "address" },
       { "internalType": "uint256", "name": "transferTokens", "type": "uint256" }
@@ -1422,15 +1424,6 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "wellAddress",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "payable": false,
-    "stateMutability": "view",
     "type": "function"
   }
 ]

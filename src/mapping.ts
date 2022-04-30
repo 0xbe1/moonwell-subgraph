@@ -47,11 +47,11 @@ import {
 } from "../generated/schema";
 import {
   BIGDECIMAL_ZERO,
-  mMOVRAddr,
+  cETHAddr,
   comptrollerAddr,
   cTokenDecimals,
   cTokenDecimalsBD,
-  MOVRAddr,
+  ETHAddr,
   exponentToBigDecimal,
   LendingType,
   mantissaFactor,
@@ -64,7 +64,7 @@ import {
   SECONDS_PER_HOUR,
   BIGDECIMAL_HUNDRED,
   BIGINT_ZERO,
-  MFAMAddr,
+  // MFAMAddr,
   RewardTokenType,
   InterestRateSide,
   InterestRateType,
@@ -95,9 +95,9 @@ export function handleNewPriceOracle(event: NewPriceOracle): void {
 //
 // event.params.cToken: The address of the market (token) to list
 export function handleMarketListed(event: MarketListed): void {
-  CTokenTemplate.create(event.params.mToken);
+  CTokenTemplate.create(event.params.cToken);
 
-  let cTokenAddr = event.params.mToken;
+  let cTokenAddr = event.params.cToken;
   let cToken = Token.load(cTokenAddr.toHexString());
   if (cToken != null) {
     return;
@@ -107,15 +107,15 @@ export function handleMarketListed(event: MarketListed): void {
   //
   // create cToken
   //
-  let cTokenContract = CToken.bind(event.params.mToken);
+  let cTokenContract = CToken.bind(event.params.cToken);
 
   // get underlying token
   let underlyingTokenAddr: Address;
 
   // if we cannot fetch the underlying token of a non-cETH cToken
   // then fail early
-  if (cTokenAddr == mMOVRAddr) {
-    underlyingTokenAddr = MOVRAddr;
+  if (cTokenAddr == cETHAddr) {
+    underlyingTokenAddr = ETHAddr;
   } else {
     let underlyingTokenAddrResult = cTokenContract.try_underlying();
     if (underlyingTokenAddrResult.reverted) {
@@ -129,9 +129,9 @@ export function handleMarketListed(event: MarketListed): void {
   }
 
   cToken = new Token(cTokenAddr.toHexString());
-  if (cTokenAddr == mMOVRAddr) {
-    cToken.name = "Moonwell MOVR";
-    cToken.symbol = "mMOVR";
+  if (cTokenAddr == cETHAddr) {
+    cToken.name = "Bastion Ether";
+    cToken.symbol = "cETH";
     cToken.decimals = cTokenDecimals;
   } else {
     cToken.name = getOrElse<string>(cTokenContract.try_name(), "unknown");
@@ -144,10 +144,10 @@ export function handleMarketListed(event: MarketListed): void {
   // create underlying token
   //
   let underlyingToken = new Token(underlyingTokenAddr.toHexString());
-  if (underlyingTokenAddr == MOVRAddr) {
+  if (underlyingTokenAddr == ETHAddr) {
     // don't want to call CEther contract, hardcode instead
-    underlyingToken.name = "MOVR";
-    underlyingToken.symbol = "MOVR";
+    underlyingToken.name = "Ether";
+    underlyingToken.symbol = "ETH";
     underlyingToken.decimals = 18;
   } else {
     let underlyingTokenContract = ERC20.bind(underlyingTokenAddr);
@@ -177,89 +177,89 @@ export function handleMarketListed(event: MarketListed): void {
   market.outputToken = cToken.id;
 
   // assumptions: reward 0 is MFAM, reward 1 is MOVR
-  let MFAMToken = Token.load(MFAMAddr.toHexString());
-  if (!MFAMToken) {
-    MFAMToken = new Token(MFAMAddr.toHexString());
-    MFAMToken.name = "MFAM";
-    MFAMToken.symbol = "MFAM";
-    MFAMToken.decimals = 18;
-    MFAMToken.save();
-  }
-  let MOVRToken = Token.load(MOVRAddr.toHexString());
-  if (!MOVRToken) {
-    MOVRToken = new Token(MOVRAddr.toHexString());
-    MOVRToken.name = "MOVR";
-    MOVRToken.symbol = "MOVR";
-    MOVRToken.decimals = 18;
-    MOVRToken.save();
-  }
+  // let MFAMToken = Token.load(MFAMAddr.toHexString());
+  // if (!MFAMToken) {
+  //   MFAMToken = new Token(MFAMAddr.toHexString());
+  //   MFAMToken.name = "MFAM";
+  //   MFAMToken.symbol = "MFAM";
+  //   MFAMToken.decimals = 18;
+  //   MFAMToken.save();
+  // }
+  // let MOVRToken = Token.load(ETHAddr.toHexString());
+  // if (!MOVRToken) {
+  //   MOVRToken = new Token(ETHAddr.toHexString());
+  //   MOVRToken.name = "MOVR";
+  //   MOVRToken.symbol = "MOVR";
+  //   MOVRToken.decimals = 18;
+  //   MOVRToken.save();
+  // }
 
-  let borrowRewardToken0 = RewardToken.load(
-    InterestRateSide.BORROWER.concat("-").concat(MFAMAddr.toHexString())
-  );
-  if (!borrowRewardToken0) {
-    borrowRewardToken0 = new RewardToken(
-      InterestRateSide.BORROWER.concat("-").concat(MFAMAddr.toHexString())
-    );
-    borrowRewardToken0.token = MFAMToken.id;
-    borrowRewardToken0.type = RewardTokenType.BORROW;
-    borrowRewardToken0.save();
-  }
+  // let borrowRewardToken0 = RewardToken.load(
+  //   InterestRateSide.BORROWER.concat("-").concat(MFAMAddr.toHexString())
+  // );
+  // if (!borrowRewardToken0) {
+  //   borrowRewardToken0 = new RewardToken(
+  //     InterestRateSide.BORROWER.concat("-").concat(MFAMAddr.toHexString())
+  //   );
+  //   borrowRewardToken0.token = MFAMToken.id;
+  //   borrowRewardToken0.type = RewardTokenType.BORROW;
+  //   borrowRewardToken0.save();
+  // }
 
-  let borrowRewardToken1 = RewardToken.load(
-    InterestRateSide.BORROWER.concat("-").concat(MOVRAddr.toHexString())
-  );
-  if (!borrowRewardToken1) {
-    borrowRewardToken1 = new RewardToken(
-      InterestRateSide.BORROWER.concat("-").concat(MOVRAddr.toHexString())
-    );
-    borrowRewardToken1.token = MOVRToken.id;
-    borrowRewardToken1.type = RewardTokenType.BORROW;
-    borrowRewardToken1.save();
-  }
+  // let borrowRewardToken1 = RewardToken.load(
+  //   InterestRateSide.BORROWER.concat("-").concat(ETHAddr.toHexString())
+  // );
+  // if (!borrowRewardToken1) {
+  //   borrowRewardToken1 = new RewardToken(
+  //     InterestRateSide.BORROWER.concat("-").concat(ETHAddr.toHexString())
+  //   );
+  //   borrowRewardToken1.token = MOVRToken.id;
+  //   borrowRewardToken1.type = RewardTokenType.BORROW;
+  //   borrowRewardToken1.save();
+  // }
 
-  let supplyRewardToken0 = RewardToken.load(
-    InterestRateSide.LENDER.concat("-").concat(MFAMAddr.toHexString())
-  );
-  if (!supplyRewardToken0) {
-    supplyRewardToken0 = new RewardToken(
-      InterestRateSide.LENDER.concat("-").concat(MFAMAddr.toHexString())
-    );
-    supplyRewardToken0.token = MFAMToken.id;
-    supplyRewardToken0.type = RewardTokenType.DEPOSIT;
-    supplyRewardToken0.save();
-  }
+  // let supplyRewardToken0 = RewardToken.load(
+  //   InterestRateSide.LENDER.concat("-").concat(MFAMAddr.toHexString())
+  // );
+  // if (!supplyRewardToken0) {
+  //   supplyRewardToken0 = new RewardToken(
+  //     InterestRateSide.LENDER.concat("-").concat(MFAMAddr.toHexString())
+  //   );
+  //   supplyRewardToken0.token = MFAMToken.id;
+  //   supplyRewardToken0.type = RewardTokenType.DEPOSIT;
+  //   supplyRewardToken0.save();
+  // }
 
-  let supplyRewardToken1 = RewardToken.load(
-    InterestRateSide.LENDER.concat("-").concat(MOVRAddr.toHexString())
-  );
-  if (!supplyRewardToken1) {
-    supplyRewardToken1 = new RewardToken(
-      InterestRateSide.LENDER.concat("-").concat(MOVRAddr.toHexString())
-    );
-    supplyRewardToken1.token = MOVRToken.id;
-    supplyRewardToken1.type = RewardTokenType.DEPOSIT;
-    supplyRewardToken1.save();
-  }
+  // let supplyRewardToken1 = RewardToken.load(
+  //   InterestRateSide.LENDER.concat("-").concat(ETHAddr.toHexString())
+  // );
+  // if (!supplyRewardToken1) {
+  //   supplyRewardToken1 = new RewardToken(
+  //     InterestRateSide.LENDER.concat("-").concat(ETHAddr.toHexString())
+  //   );
+  //   supplyRewardToken1.token = MOVRToken.id;
+  //   supplyRewardToken1.type = RewardTokenType.DEPOSIT;
+  //   supplyRewardToken1.save();
+  // }
 
-  market.rewardTokens = [
-    borrowRewardToken0.id,
-    borrowRewardToken1.id,
-    supplyRewardToken0.id,
-    supplyRewardToken1.id,
-  ];
-  market.rewardTokenEmissionsAmount = [
-    BIGINT_ZERO,
-    BIGINT_ZERO,
-    BIGINT_ZERO,
-    BIGINT_ZERO,
-  ];
-  market.rewardTokenEmissionsUSD = [
-    BIGDECIMAL_ZERO,
-    BIGDECIMAL_ZERO,
-    BIGDECIMAL_ZERO,
-    BIGDECIMAL_ZERO,
-  ];
+  // market.rewardTokens = [
+  //   borrowRewardToken0.id,
+  //   borrowRewardToken1.id,
+  //   supplyRewardToken0.id,
+  //   supplyRewardToken1.id,
+  // ];
+  // market.rewardTokenEmissionsAmount = [
+  //   BIGINT_ZERO,
+  //   BIGINT_ZERO,
+  //   BIGINT_ZERO,
+  //   BIGINT_ZERO,
+  // ];
+  // market.rewardTokenEmissionsUSD = [
+  //   BIGDECIMAL_ZERO,
+  //   BIGDECIMAL_ZERO,
+  //   BIGDECIMAL_ZERO,
+  //   BIGDECIMAL_ZERO,
+  // ];
 
   let supplyInterestRate = new InterestRate(
     InterestRateSide.LENDER.concat("-")
@@ -311,7 +311,7 @@ export function handleMarketListed(event: MarketListed): void {
 // event.params.oldCollateralFactorMantissa:
 // event.params.newCollateralFactorMantissa:
 export function handleNewCollateralFactor(event: NewCollateralFactor): void {
-  let marketID = event.params.mToken.toHexString();
+  let marketID = event.params.cToken.toHexString();
   let market = Market.load(marketID);
   if (market == null) {
     log.warning("[handleNewCollateralFactor] Market not found: {}", [marketID]);
@@ -445,7 +445,7 @@ export function handleMint(event: Mint): void {
 // event.params
 // - redeemer
 // - redeemAmount
-// - redeemTokens
+// - redeecTokens
 export function handleRedeem(event: Redeem): void {
   let marketID = event.address.toHexString();
   let market = Market.load(marketID);
@@ -647,7 +647,7 @@ export function handleLiquidateBorrow(event: LiquidateBorrow): void {
     return;
   }
 
-  let liquidatedCTokenMarketID = event.params.mTokenCollateral.toHexString();
+  let liquidatedCTokenMarketID = event.params.cTokenCollateral.toHexString();
   let liquidatedCTokenMarket = Market.load(liquidatedCTokenMarketID);
   if (!liquidatedCTokenMarket) {
     log.warning(
@@ -749,12 +749,12 @@ function getOrCreateProtocol(): LendingProtocol {
   let protocol = LendingProtocol.load(comptrollerAddr.toHexString());
   if (!protocol) {
     protocol = new LendingProtocol(comptrollerAddr.toHexString());
-    protocol.name = "Moonwell";
-    protocol.slug = "moonwell";
+    protocol.name = "Bastion Protocol";
+    protocol.slug = "bastion-protocol";
     protocol.schemaVersion = "1.2.0";
     protocol.subgraphVersion = "1.0.0";
     protocol.methodologyVersion = "1.0.0";
-    protocol.network = Network.MOONRIVER;
+    protocol.network = Network.AURORA;
     protocol.type = ProtocolType.LENDING;
     protocol.lendingType = LendingType.POOLED;
     protocol.riskType = RiskType.GLOBAL;
@@ -854,11 +854,10 @@ function updateMarket(
     market.totalBorrowBalanceUSD = totalBorrowUSD;
   }
 
-  let supplyRatePerTimestampResult =
-    cTokenContract.try_supplyRatePerTimestamp();
+  let supplyRatePerTimestampResult = cTokenContract.try_supplyRatePerBlock();
   if (supplyRatePerTimestampResult.reverted) {
     log.warning(
-      "[updateMarket] Failed to get supplyRatePerTimestamp of Market {}",
+      "[updateMarket] Failed to get supplyRatePerBlock of Market {}",
       [marketID]
     );
   } else {
@@ -868,8 +867,7 @@ function updateMarket(
     );
   }
 
-  let borrowRatePerTimestampResult =
-    cTokenContract.try_borrowRatePerTimestamp();
+  let borrowRatePerTimestampResult = cTokenContract.try_borrowRatePerBlock();
   let borrowRatePerTimestamp = BIGDECIMAL_ZERO;
   if (borrowRatePerTimestampResult.reverted) {
     log.warning(
@@ -920,27 +918,27 @@ function updateMarket(
     snapshot._dailySupplySideRevenueUSD.plus(supplySideRevenueUSDDelta);
 
   // rewards
-  let comptroller = Comptroller.bind(comptrollerAddr);
-  setMFAMReward(
-    market,
-    comptroller.try_borrowRewardSpeeds(0, marketAddress),
-    0
-  );
-  setMOVRReward(
-    market,
-    comptroller.try_borrowRewardSpeeds(1, marketAddress),
-    1
-  );
-  setMFAMReward(
-    market,
-    comptroller.try_supplyRewardSpeeds(0, marketAddress),
-    2
-  );
-  setMOVRReward(
-    market,
-    comptroller.try_supplyRewardSpeeds(1, marketAddress),
-    3
-  );
+  // let comptroller = Comptroller.bind(comptrollerAddr);
+  // setMFAMReward(
+  //   market,
+  //   comptroller.try_borrowRewardSpeeds(0, marketAddress),
+  //   0
+  // );
+  // setMOVRReward(
+  //   market,
+  //   comptroller.try_borrowRewardSpeeds(1, marketAddress),
+  //   1
+  // );
+  // setMFAMReward(
+  //   market,
+  //   comptroller.try_supplyRewardSpeeds(0, marketAddress),
+  //   2
+  // );
+  // setMOVRReward(
+  //   market,
+  //   comptroller.try_supplyRewardSpeeds(1, marketAddress),
+  //   3
+  // );
 
   market._accrualTimestamp = blockTimestamp;
   market.save();
@@ -1402,7 +1400,7 @@ function setMOVRReward(
     rewardTokenEmissionsAmount[rewardIndex] = rewardRatePerDay;
     market.rewardTokenEmissionsAmount = rewardTokenEmissionsAmount;
   }
-  let rewardToken = Token.load(MOVRAddr.toHexString());
+  let rewardToken = Token.load(ETHAddr.toHexString());
   if (
     rewardToken &&
     rewardToken.lastPriceUSD &&

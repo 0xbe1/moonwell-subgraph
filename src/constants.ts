@@ -62,17 +62,17 @@ export namespace InterestRateSide {
 //////////////////////////////
 
 export let comptrollerAddr = Address.fromString(
-  "0x0b7a0EAA884849c6Af7a129e899536dDDcA4905E"
+  "0x6De54724e128274520606f038591A00C5E94a1F6"
 );
-export let mMOVRAddr = Address.fromString(
+export let cETHAddr = Address.fromString(
   "0x6a1A771C7826596652daDC9145fEAaE62b1cd07f"
 );
-export let MOVRAddr = Address.fromString(
+export let ETHAddr = Address.fromString(
   "0x0000000000000000000000000000000000000000"
 );
-export let MFAMAddr = Address.fromString(
-  "0xbb8d88bcd9749636bc4d2be22aac4bb3b01a58f1"
-);
+// export let MFAMAddr = Address.fromString(
+//   "0xbb8d88bcd9749636bc4d2be22aac4bb3b01a58f1"
+// );
 
 ////////////////////////
 ///// Type Helpers /////
@@ -112,7 +112,5 @@ export function exponentToBigDecimal(decimals: i32): BigDecimal {
   return result.toBigDecimal();
 }
 
-// at this very moment, the average block time on moonriver is 24 seconds, therefore 3600 blocks per day
-// however, we know this is fluctuating according to https://moonriver.moonscan.io/chart/blocks
-// maybe we could find a better way to get this data rather than hardcoding it
-export const BLOCKS_PER_DAY = 3600 as i32;
+// TODO: about 2 seconds per block
+export const BLOCKS_PER_DAY = (24 * 60 * 60) / 2;

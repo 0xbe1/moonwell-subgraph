@@ -1,21 +1,19 @@
 {
-  "name": "compound-v2",
+  "name": "bastionprotocol-subgraph",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "test": "docker run -it --rm --mount type=bind,source=$(pwd),target=/matchstick matchstick",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ 0xbe1/moonwell-subgraph",
-    "create-local": "graph create --node http://localhost:8020/ 0xbe1/moonwell-subgraph",
-    "remove-local": "graph remove --node http://localhost:8020/ 0xbe1/moonwell-subgraph",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 0xbe1/moonwell-subgraph"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ 0xbe1/bastionprotocol-subgraph",
+    "create-local": "graph create --node http://localhost:8020/ 0xbe1/bastionprotocol-subgraph",
+    "remove-local": "graph remove --node http://localhost:8020/ 0xbe1/bastionprotocol-subgraph",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 0xbe1/bastionprotocol-subgraph"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.28.0",
     "@graphprotocol/graph-ts": "0.26.0"
   },
   "devDependencies": {
-    "matchstick-as": "^0.4.2",
     "prettier": "^2.6.2"
   }
 }
